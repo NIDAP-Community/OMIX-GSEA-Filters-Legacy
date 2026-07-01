@@ -1,0 +1,253 @@
+{
+	"version": 1,
+	"named_parameters": true,
+	"general": {
+		"title": "GSEA Filter",
+		"instructions": "Filter GSEA enrichment results from OMIX GSEA by p-value, enrichment score, pathway size, and more. Attach a GSEA results data asset containing gsea_results.csv before running."
+	},
+	"categories": [
+		{
+			"id": "input",
+			"name": "Input File",
+			"help_text": "Specify the GSEA results input file"
+		},
+		{
+			"id": "pvalue",
+			"name": "P-value Filtering",
+			"help_text": "Filter pathways by statistical significance"
+		},
+		{
+			"id": "enrichment",
+			"name": "Enrichment Score Filtering",
+			"help_text": "Filter by normalized or raw enrichment scores"
+		},
+		{
+			"id": "size",
+			"name": "Pathway Size Filtering",
+			"help_text": "Filter by pathway or leading edge size"
+		},
+		{
+			"id": "advanced",
+			"name": "Advanced Filters",
+			"help_text": "Filter by collection, pathway, gene, or contrast"
+		},
+		{
+			"id": "display",
+			"name": "Display Options",
+			"help_text": "Configure output and visualization"
+		}
+	],
+	"parameters": [
+		{
+			"id": "y8zfcs0V7ocuq6Og",
+			"category": "input",
+			"name": "Input File Path",
+			"param_name": "input_file",
+			"help_text": "Path to GSEA results CSV file (relative to /code or absolute path starting with ../data/)",
+			"type": "text",
+			"value_type": "string",
+			"default_value": "../data/gsea_results.csv"
+		},
+		{
+			"id": "UGy8UZwZ2FrV2GKA",
+			"category": "pvalue",
+			"name": "P-value Type",
+			"param_name": "p_value_filter",
+			"help_text": "Use adjusted (FDR) or raw p-value for filtering",
+			"type": "list",
+			"value_type": "string",
+			"default_value": "adjusted p-value",
+			"extra_data": [
+				"adjusted p-value",
+				"raw p-value"
+			]
+		},
+		{
+			"id": "JUmnMHrKaXOfMSqo",
+			"category": "pvalue",
+			"name": "P-value Threshold",
+			"param_name": "p_value_threshold",
+			"help_text": "Maximum p-value to include (e.g., 0.05 for 5% FDR)",
+			"type": "text",
+			"value_type": "number",
+			"default_value": "0.05",
+			"minimum": 0,
+			"maximum": 1
+		},
+		{
+			"id": "RRwdrh3qCmJWi0Mp",
+			"category": "enrichment",
+			"name": "Enrichment Score Type",
+			"param_name": "enrichment_score_filter",
+			"help_text": "Use NES (normalized), ES (raw), or skip enrichment filtering",
+			"type": "list",
+			"value_type": "string",
+			"default_value": "NES (Normalized Enrichment Score)",
+			"extra_data": [
+				"NES (Normalized Enrichment Score)",
+				"ES (Enrichment Score)",
+				"none"
+			]
+		},
+		{
+			"id": "HDv4mw7J6kj8Esjz",
+			"category": "enrichment",
+			"name": "Enrichment Score Threshold",
+			"param_name": "enrichment_score_threshold",
+			"help_text": "Minimum absolute enrichment score (0 = no filtering)",
+			"type": "text",
+			"value_type": "number",
+			"default_value": "0",
+			"minimum": 0
+		},
+		{
+			"id": "iWd9iH1nI3vCnwU4",
+			"category": "enrichment",
+			"name": "Enrichment Direction",
+			"param_name": "enrichment_score_sign",
+			"help_text": "+/- = both directions, + = positive only, - = negative only",
+			"type": "list",
+			"value_type": "string",
+			"default_value": "+/-",
+			"extra_data": [
+				"+/-",
+				"+",
+				"-"
+			]
+		},
+		{
+			"id": "91u4503z9qfSYdxi",
+			"category": "size",
+			"name": "Size Filter Type",
+			"param_name": "size_filter",
+			"help_text": "Filter by total pathway size or leading edge size",
+			"type": "list",
+			"value_type": "string",
+			"default_value": "Pathway size",
+			"extra_data": [
+				"Pathway size",
+				"Leading Edge (LE) size",
+				"none"
+			]
+		},
+		{
+			"id": "d8sztrKdO4Cn3QtG",
+			"category": "size",
+			"name": "Minimum Size",
+			"param_name": "size_cutoff",
+			"help_text": "Minimum pathway or leading edge size (0 = no filtering)",
+			"type": "text",
+			"value_type": "number",
+			"default_value": "0",
+			"minimum": 0
+		},
+		{
+			"id": "pvegDWRvAVWO9UWj",
+			"category": "advanced",
+			"name": "Top Rank Filter",
+			"param_name": "top_rank_filter",
+			"help_text": "Keep top N pathways per collection and contrast (e.g., '10'), or 'all'",
+			"type": "text",
+			"value_type": "string",
+			"default_value": "all"
+		},
+		{
+			"id": "LJAJ2CXAShpBomB8",
+			"category": "advanced",
+			"name": "Collections to Include",
+			"param_name": "collections_to_include",
+			"help_text": "Comma-separated MSigDB collections (e.g., 'H,C2'), or leave empty for all",
+			"type": "text",
+			"value_type": "string"
+		},
+		{
+			"id": "VGjJGMN1y8mJnBLU",
+			"category": "advanced",
+			"name": "Pathways to Include",
+			"param_name": "pathways_to_include",
+			"help_text": "Comma-separated pathway names to include, or leave empty for all",
+			"type": "text",
+			"value_type": "string"
+		},
+		{
+			"id": "07cDCSzwYhWREvDj",
+			"category": "advanced",
+			"name": "Gene Filter Universe",
+			"param_name": "gene_filter_universe",
+			"help_text": "Filter by genes in leading edge or entire pathway",
+			"type": "list",
+			"value_type": "string",
+			"default_value": "Leading Edge (LE)",
+			"extra_data": [
+				"Leading Edge (LE)",
+				"Pathway"
+			]
+		},
+		{
+			"id": "mTsikvDVcqSXZRqC",
+			"category": "advanced",
+			"name": "Genes to Include",
+			"param_name": "genes_to_include",
+			"help_text": "Comma-separated gene symbols (e.g., 'TP53,BRCA1'), or leave empty for all",
+			"type": "text",
+			"value_type": "string"
+		},
+		{
+			"id": "y8o4Y3KCVWuaNxem",
+			"category": "advanced",
+			"name": "Contrast Filter Mode",
+			"param_name": "contrast_filter",
+			"help_text": "none = all contrasts, keep = include only specified, remove = exclude specified",
+			"type": "list",
+			"value_type": "string",
+			"default_value": "none",
+			"extra_data": [
+				"none",
+				"keep",
+				"remove"
+			]
+		},
+		{
+			"id": "rTDrusQ3hqTtcEai",
+			"category": "advanced",
+			"name": "Contrasts",
+			"param_name": "contrasts",
+			"help_text": "Comma-separated contrast names for keep/remove mode",
+			"type": "text",
+			"value_type": "string"
+		},
+		{
+			"id": "02IgV2d6lSi509CO",
+			"category": "display",
+			"name": "Bubble Color Variable",
+			"param_name": "bubble_color_variable",
+			"help_text": "Color bubbles by MSigDB collection or pathway size",
+			"type": "list",
+			"value_type": "string",
+			"default_value": "collection",
+			"extra_data": [
+				"collection",
+				"Pathway size"
+			]
+		},
+		{
+			"id": "EusRGCWgdX7Cqwd8",
+			"category": "display",
+			"name": "Sort Decreasing",
+			"param_name": "sort_decreasing",
+			"help_text": "Sort output by p-value in decreasing order (most significant last)",
+			"type": "list",
+			"value_type": "string",
+			"default_value": "FALSE",
+			"extra_data": [
+				"FALSE",
+				"TRUE"
+			]
+		}
+	],
+	"results": [
+		{
+			"file_name": "filtered_gsea_results.csv"
+		}
+	]
+}

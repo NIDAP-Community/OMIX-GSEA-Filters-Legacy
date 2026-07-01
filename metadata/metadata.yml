@@ -1,0 +1,7 @@
+metadata_version: 1
+name: Omix GSEA Filter
+description: Filter GSEA table formatted output from Omix GSEA
+tags:
+- GSEA
+- filtering
+- gene-set-enrichment

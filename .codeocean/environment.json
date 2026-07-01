@@ -1,0 +1,24 @@
+{
+	"version": 1,
+	"base_image": "codeocean/mosuite:v0.3.2",
+	"options": {
+		"registry_host_arg": true,
+		"git_ask_pass": true,
+		"mount_secrets": true
+	},
+	"installers": {
+		"rcran": {
+			"packages": [
+				{
+					"name": "optparse",
+					"version": "1.8.2"
+				},
+				{
+					"name": "plotly",
+					"version": "4.12.0"
+				}
+			],
+			"use_rcache": true
+		}
+	}
+}

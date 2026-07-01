@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# GSEA Filter Run Script
+# Accepts named parameters from App Panel or command line
+
+echo "=== Running GSEA Filter ==="
+echo ""
+
+# Forward all arguments to main.R (App Panel passes as named flags)
+Rscript main.R "$@"
+
+echo ""
+echo "=== Run Complete ==="
