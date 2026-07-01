@@ -881,16 +881,14 @@ GSEA_Filters <- function(
     # OUTPUT ====
 
     ## sort output
+    # Modern dplyr: use arrange with pick() and conditional desc()
     if (sort_output_in_decreasing_order) {
-        columns_to_sort_output_by <- sapply(
-            columns_to_sort_output_by,
-            function(x) {
-                sprintf("desc(%s)", x)
-            }
-        )
+        gsea_filtered <- gsea_filtered %>% 
+            dplyr::arrange(dplyr::desc(dplyr::pick(dplyr::all_of(columns_to_sort_output_by))))
+    } else {
+        gsea_filtered <- gsea_filtered %>% 
+            dplyr::arrange(dplyr::pick(dplyr::all_of(columns_to_sort_output_by)))
     }
-    gsea_filtered <-
-        gsea_filtered %>% dplyr::arrange_(.dots = columns_to_sort_output_by)
 
     ## do plot and return dataset
 
@@ -962,12 +960,12 @@ GSEA_Filters <- function(
             sort_by <- colnames(df)[which(find_sort)]
         }
 
+        # Modern dplyr: use arrange with pick() and conditional desc()
         if (sort_output_in_decreasing_order) {
-            sort_by <- sapply(sort_by, function(x) {
-                sprintf("desc(%s)", x)
-            })
+            df <- df %>% dplyr::arrange(dplyr::desc(dplyr::pick(dplyr::all_of(sort_by))))
+        } else {
+            df <- df %>% dplyr::arrange(dplyr::pick(dplyr::all_of(sort_by)))
         }
-        df <- df %>% dplyr::arrange_(.dots = sort_by)
 
         if (bubble_color_variable == "pathway size") {
             ggp <-

@@ -3,13 +3,20 @@
 	"named_parameters": true,
 	"general": {
 		"title": "GSEA Filter",
-		"instructions": "Filter GSEA enrichment results from OMIX GSEA by p-value, enrichment score, pathway size, and more. Attach a GSEA results data asset containing gsea_results.csv before running."
+		"instructions": "Filter GSEA enrichment results from OMIX GSEA by p-value, enrichment score, pathway size, and more. Attach a GSEA results data asset before running."
 	},
+	"datasets": [
+		{
+			"id": "f165ec6c-115f-446a-8429-55073714c2ef",
+			"name": "GSEA Results",
+			"help_text": "Data asset containing gsea_results.csv from OMIX GSEA"
+		}
+	],
 	"categories": [
 		{
 			"id": "input",
-			"name": "Input File",
-			"help_text": "Specify the GSEA results input file"
+			"name": "Input Data",
+			"help_text": "Select the GSEA results data asset"
 		},
 		{
 			"id": "pvalue",
@@ -39,17 +46,7 @@
 	],
 	"parameters": [
 		{
-			"id": "y8zfcs0V7ocuq6Og",
-			"category": "input",
-			"name": "Input File Path",
-			"param_name": "input_file",
-			"help_text": "Path to GSEA results CSV file (relative to /code or absolute path starting with ../data/)",
-			"type": "text",
-			"value_type": "string",
-			"default_value": "../data/gsea_results.csv"
-		},
-		{
-			"id": "UGy8UZwZ2FrV2GKA",
+			"id": "pyhnI2XhAEPSQ675",
 			"category": "pvalue",
 			"name": "P-value Type",
 			"param_name": "p_value_filter",
@@ -63,7 +60,7 @@
 			]
 		},
 		{
-			"id": "JUmnMHrKaXOfMSqo",
+			"id": "YZPdu5LILG2T8SnO",
 			"category": "pvalue",
 			"name": "P-value Threshold",
 			"param_name": "p_value_threshold",
@@ -75,7 +72,7 @@
 			"maximum": 1
 		},
 		{
-			"id": "RRwdrh3qCmJWi0Mp",
+			"id": "SVyThovM6tEj8dqF",
 			"category": "enrichment",
 			"name": "Enrichment Score Type",
 			"param_name": "enrichment_score_filter",
@@ -90,7 +87,7 @@
 			]
 		},
 		{
-			"id": "HDv4mw7J6kj8Esjz",
+			"id": "Blp7CYxuEExUSDAa",
 			"category": "enrichment",
 			"name": "Enrichment Score Threshold",
 			"param_name": "enrichment_score_threshold",
@@ -101,7 +98,7 @@
 			"minimum": 0
 		},
 		{
-			"id": "iWd9iH1nI3vCnwU4",
+			"id": "2upyAqXHj8BPFaoQ",
 			"category": "enrichment",
 			"name": "Enrichment Direction",
 			"param_name": "enrichment_score_sign",
@@ -116,7 +113,7 @@
 			]
 		},
 		{
-			"id": "91u4503z9qfSYdxi",
+			"id": "fFgKWGmdRciGj5Zz",
 			"category": "size",
 			"name": "Size Filter Type",
 			"param_name": "size_filter",
@@ -131,7 +128,7 @@
 			]
 		},
 		{
-			"id": "d8sztrKdO4Cn3QtG",
+			"id": "Psi0LiPjo5YKYky1",
 			"category": "size",
 			"name": "Minimum Size",
 			"param_name": "size_cutoff",
@@ -142,7 +139,7 @@
 			"minimum": 0
 		},
 		{
-			"id": "pvegDWRvAVWO9UWj",
+			"id": "BfdnzrOCNb4Wwa6W",
 			"category": "advanced",
 			"name": "Top Rank Filter",
 			"param_name": "top_rank_filter",
@@ -152,7 +149,7 @@
 			"default_value": "all"
 		},
 		{
-			"id": "LJAJ2CXAShpBomB8",
+			"id": "scg4fEPEsROY9kPw",
 			"category": "advanced",
 			"name": "Collections to Include",
 			"param_name": "collections_to_include",
@@ -161,7 +158,7 @@
 			"value_type": "string"
 		},
 		{
-			"id": "VGjJGMN1y8mJnBLU",
+			"id": "3Br2dg6NGPsEEsaA",
 			"category": "advanced",
 			"name": "Pathways to Include",
 			"param_name": "pathways_to_include",
@@ -170,7 +167,7 @@
 			"value_type": "string"
 		},
 		{
-			"id": "07cDCSzwYhWREvDj",
+			"id": "VvOTr8NH8OLswcYX",
 			"category": "advanced",
 			"name": "Gene Filter Universe",
 			"param_name": "gene_filter_universe",
@@ -184,7 +181,7 @@
 			]
 		},
 		{
-			"id": "mTsikvDVcqSXZRqC",
+			"id": "HoQq8uQ623reGPb4",
 			"category": "advanced",
 			"name": "Genes to Include",
 			"param_name": "genes_to_include",
@@ -193,7 +190,7 @@
 			"value_type": "string"
 		},
 		{
-			"id": "y8o4Y3KCVWuaNxem",
+			"id": "tstF6Lcflq4PoDyb",
 			"category": "advanced",
 			"name": "Contrast Filter Mode",
 			"param_name": "contrast_filter",
@@ -208,7 +205,7 @@
 			]
 		},
 		{
-			"id": "rTDrusQ3hqTtcEai",
+			"id": "RReG09Ese7VEVyIH",
 			"category": "advanced",
 			"name": "Contrasts",
 			"param_name": "contrasts",
@@ -217,7 +214,7 @@
 			"value_type": "string"
 		},
 		{
-			"id": "02IgV2d6lSi509CO",
+			"id": "S8k5cRkrGDdLnLi3",
 			"category": "display",
 			"name": "Bubble Color Variable",
 			"param_name": "bubble_color_variable",
@@ -231,7 +228,7 @@
 			]
 		},
 		{
-			"id": "EusRGCWgdX7Cqwd8",
+			"id": "VEL1Hj0AFt2uykKx",
 			"category": "display",
 			"name": "Sort Decreasing",
 			"param_name": "sort_decreasing",

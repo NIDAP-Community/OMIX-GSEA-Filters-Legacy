@@ -18,8 +18,6 @@ source("/code/filter_gsea_function.R")
 
 # Define command line options
 option_list <- list(
-  make_option("--input_file", type = "character", default = "../data/gsea_results.csv",
-              help = "Path to input GSEA results CSV file [default: %default]"),
   make_option("--p_value_filter", type = "character", default = "adjusted p-value",
               help = "P-value type for filtering [default: %default]"),
   make_option("--p_value_threshold", type = "double", default = 0.05,
@@ -70,7 +68,31 @@ genes_vec <- parse_comma_list(opt$genes_to_include)
 contrasts_vec <- parse_comma_list(opt$contrasts)
 
 # Set file paths
-input_file <- opt$input_file
+# Auto-detect GSEA results from attached data asset
+# Data assets are mounted under /data/<mount_point>
+# Search for gsea_results.csv in /data subdirectories
+data_dirs <- list.dirs("/data", recursive = FALSE, full.names = TRUE)
+input_file <- NULL
+
+for (dir in data_dirs) {
+  candidate <- file.path(dir, "gsea_results.csv")
+  if (file.exists(candidate)) {
+    input_file <- candidate
+    break
+  }
+}
+
+# Fallback to old behavior if no data asset attached
+if (is.null(input_file)) {
+  input_file <- opt$input_file
+  if (!is.null(opt$input_file) && opt$input_file != "") {
+    cat("Warning: No gsea_results.csv found in attached data assets.\n")
+    cat("Attempting to use provided input_file parameter.\n")
+  } else {
+    stop("Error: No GSEA results data asset attached and no input_file specified.")
+  }
+}
+
 output_file <- "../results/filtered_gsea_results.csv"
 
 # Read input GSEA table
@@ -135,8 +157,7 @@ filtered_results <- GSEA_Filters(
   
   # Contrast filtering
   contrast_filter = opt$contrast_filter,
-  contrasts_to_keep = if (opt$contrast_filter == "keep") contrasts_vec else NULL,
-  contrasts_to_remove = if (opt$contrast_filter == "remove") contrasts_vec else NULL,
+  contrasts = contrasts_vec,
   
   # Plotting options
   bubble_color_variable = opt$bubble_color_variable,
