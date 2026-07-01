@@ -4,12 +4,21 @@ Filter GSEA table formatted output from Omix GSEA based on multiple criteria inc
 
 ## Input
 
-- **GSEA Results Table**: CSV file (typically `gsea_results.csv` from OMIX GSEA output)
+- **GSEA Results Table**: CSV or RDS file from OMIX GSEA output
+  - Supported formats: `gsea_results.csv` or `gsea_results.rds`
   - Required columns: `contrast`, `collection`, `pathway`, `pval`, `padj`, `ES`, `NES`, `size`, `leadingEdge`, etc.
+  - RDS files must contain a data frame with the same structure
 
 ## Output
 
 - **Filtered GSEA Results**: `filtered_gsea_results.csv` containing pathways that pass all filter criteria
+- **Filtering Summary**: `filtering_summary.png` showing before/after pathway counts
+  - Total pathways retained
+  - Pathways by MSigDB collection
+  - Pathways by contrast
+- **Enrichment Direction**: `enrichment_direction.png` showing positive/negative NES distribution
+  - Overall enrichment direction
+  - Direction breakdown by collection
 - **Interactive Bubble Plot**: Volcano-bubble chart visualization (displayed in logs)
 
 ## Usage

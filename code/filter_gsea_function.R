@@ -922,7 +922,8 @@ GSEA_Filters <- function(
                 n_contrast = length(contrast),
                 Pathway_size = mean(size),
                 mean_NES = mean(NES),
-                individual_values = paste(textContrast, collapse = "\n")
+                individual_values = paste(textContrast, collapse = "\n"),
+                .groups = "drop"
             ) %>%
             dplyr::mutate(
                 textPathway = sprintf(

@@ -1,7 +1,16 @@
 metadata_version: 1
-name: Omix GSEA Filter
-description: Filter GSEA table formatted output from Omix GSEA
+name: Omix GSEA Filters
+description: Filters Gene Set Enrichment Analysis (GSEA) results based on statistical
+  thresholds (FDR, NES), pathway annotations, gene sets, and experimental contrasts.
+  Outputs include a filtered results table (CSV), filtering summary visualization,
+  and enrichment direction plots showing pathway retention across contrasts.
 tags:
 - GSEA
 - filtering
 - gene-set-enrichment
+- MSigDB
+- pathway-analysis
+- bioinformatics
+authors:
+- name: Aleksandra Michalowski
+- name: Maggie Cam

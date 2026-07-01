@@ -46,7 +46,7 @@
 	],
 	"parameters": [
 		{
-			"id": "pyhnI2XhAEPSQ675",
+			"id": "aGsGx43E3kF9dgUL",
 			"category": "pvalue",
 			"name": "P-value Type",
 			"param_name": "p_value_filter",
@@ -60,7 +60,7 @@
 			]
 		},
 		{
-			"id": "YZPdu5LILG2T8SnO",
+			"id": "KZNXQRSx8rRgh54d",
 			"category": "pvalue",
 			"name": "P-value Threshold",
 			"param_name": "p_value_threshold",
@@ -72,7 +72,7 @@
 			"maximum": 1
 		},
 		{
-			"id": "SVyThovM6tEj8dqF",
+			"id": "uHgZRO3lkTAmcHnw",
 			"category": "enrichment",
 			"name": "Enrichment Score Type",
 			"param_name": "enrichment_score_filter",
@@ -87,7 +87,7 @@
 			]
 		},
 		{
-			"id": "Blp7CYxuEExUSDAa",
+			"id": "YXVHzjvwkLfbKJwr",
 			"category": "enrichment",
 			"name": "Enrichment Score Threshold",
 			"param_name": "enrichment_score_threshold",
@@ -98,7 +98,7 @@
 			"minimum": 0
 		},
 		{
-			"id": "2upyAqXHj8BPFaoQ",
+			"id": "PAfFj7N089MV00uw",
 			"category": "enrichment",
 			"name": "Enrichment Direction",
 			"param_name": "enrichment_score_sign",
@@ -113,7 +113,7 @@
 			]
 		},
 		{
-			"id": "fFgKWGmdRciGj5Zz",
+			"id": "sjAf5AQEAMc5PPMP",
 			"category": "size",
 			"name": "Size Filter Type",
 			"param_name": "size_filter",
@@ -128,7 +128,7 @@
 			]
 		},
 		{
-			"id": "Psi0LiPjo5YKYky1",
+			"id": "OSd0ZKMHqLUH5SW4",
 			"category": "size",
 			"name": "Minimum Size",
 			"param_name": "size_cutoff",
@@ -139,7 +139,7 @@
 			"minimum": 0
 		},
 		{
-			"id": "BfdnzrOCNb4Wwa6W",
+			"id": "lkISr50k3BvnBNEZ",
 			"category": "advanced",
 			"name": "Top Rank Filter",
 			"param_name": "top_rank_filter",
@@ -149,7 +149,7 @@
 			"default_value": "all"
 		},
 		{
-			"id": "scg4fEPEsROY9kPw",
+			"id": "7EfLrKT3dSpl6lrG",
 			"category": "advanced",
 			"name": "Collections to Include",
 			"param_name": "collections_to_include",
@@ -158,7 +158,7 @@
 			"value_type": "string"
 		},
 		{
-			"id": "3Br2dg6NGPsEEsaA",
+			"id": "YsfCsXulSF5RnSna",
 			"category": "advanced",
 			"name": "Pathways to Include",
 			"param_name": "pathways_to_include",
@@ -167,7 +167,7 @@
 			"value_type": "string"
 		},
 		{
-			"id": "VvOTr8NH8OLswcYX",
+			"id": "AsxXqyPcKm19QxmW",
 			"category": "advanced",
 			"name": "Gene Filter Universe",
 			"param_name": "gene_filter_universe",
@@ -181,7 +181,7 @@
 			]
 		},
 		{
-			"id": "HoQq8uQ623reGPb4",
+			"id": "oMvi1bPUpXld4DLV",
 			"category": "advanced",
 			"name": "Genes to Include",
 			"param_name": "genes_to_include",
@@ -190,7 +190,7 @@
 			"value_type": "string"
 		},
 		{
-			"id": "tstF6Lcflq4PoDyb",
+			"id": "ZoZUqsEeG5nll0yd",
 			"category": "advanced",
 			"name": "Contrast Filter Mode",
 			"param_name": "contrast_filter",
@@ -205,7 +205,7 @@
 			]
 		},
 		{
-			"id": "RReG09Ese7VEVyIH",
+			"id": "zZT2x7WjO6nvMngm",
 			"category": "advanced",
 			"name": "Contrasts",
 			"param_name": "contrasts",
@@ -214,7 +214,7 @@
 			"value_type": "string"
 		},
 		{
-			"id": "S8k5cRkrGDdLnLi3",
+			"id": "ZDZJm3pFZnP86SeK",
 			"category": "display",
 			"name": "Bubble Color Variable",
 			"param_name": "bubble_color_variable",
@@ -228,7 +228,7 @@
 			]
 		},
 		{
-			"id": "VEL1Hj0AFt2uykKx",
+			"id": "oY5MptbdmqKkN6WU",
 			"category": "display",
 			"name": "Sort Decreasing",
 			"param_name": "sort_decreasing",
@@ -245,6 +245,12 @@
 	"results": [
 		{
 			"file_name": "filtered_gsea_results.csv"
+		},
+		{
+			"file_name": "filtering_summary.png"
+		},
+		{
+			"file_name": "enrichment_direction.png"
 		}
 	]
 }
