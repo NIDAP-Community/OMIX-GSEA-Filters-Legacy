@@ -5,13 +5,6 @@
 		"title": "GSEA Filter",
 		"instructions": "Filter GSEA enrichment results from OMIX GSEA by p-value, enrichment score, pathway size, and more. Attach a GSEA results data asset before running."
 	},
-	"datasets": [
-		{
-			"id": "f165ec6c-115f-446a-8429-55073714c2ef",
-			"name": "GSEA Results",
-			"help_text": "Data asset containing gsea_results.csv from OMIX GSEA"
-		}
-	],
 	"categories": [
 		{
 			"id": "input",
