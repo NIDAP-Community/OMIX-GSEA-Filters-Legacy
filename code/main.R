@@ -8,6 +8,7 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(ggplot2)
   library(tidyr)
+  library(stringr)
   library(plotly)
   library(RColorBrewer)
   library(optparse)
@@ -198,39 +199,21 @@ filtered_results <- GSEA_Filters(
   display_warnings = -1
 )
 
-# Generate summary visualizations
-cat("\n=== Generating Summary Visualizations ===\n")
+# Generate summary visualization
+cat("\n=== Generating Summary Visualization ===\n")
 
-## Figure 1: Filtering Summary (Total + By Contrast)
 cat("Creating filtering summary plot...\n")
 
-# Prepare data - count UNIQUE pathways
-if ("pathway" %in% colnames(gsea_table)) {
+# Check if we have the required columns
+if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results) && 
+    "contrast" %in% colnames(filtered_results)) {
+  
+  # Count UNIQUE pathways for top panel
   before_total <- length(unique(gsea_table$pathway))
   after_total <- length(unique(filtered_results$pathway))
-} else {
-  # Fallback if no pathway column
-  before_total <- nrow(gsea_table)
-  after_total <- nrow(filtered_results)
-}
-retention_pct <- round(100 * after_total / before_total, 1)
-
-# Count by contrast
-if ("contrast" %in% colnames(gsea_table) && length(unique(gsea_table$contrast)) > 0) {
-  before_by_contrast <- gsea_table %>%
-    group_by(contrast) %>%
-    summarise(count = n(), .groups = "drop") %>%
-    mutate(status = "Before")
+  retention_pct <- round(100 * after_total / before_total, 1)
   
-  after_by_contrast <- filtered_results %>%
-    group_by(contrast) %>%
-    summarise(count = n(), .groups = "drop") %>%
-    mutate(status = "After")
-  
-  contrast_data <- bind_rows(before_by_contrast, after_by_contrast) %>%
-    mutate(status = factor(status, levels = c("Before", "After")))
-  
-  # Create text summary panel with ggplot
+  # Top panel: Text summary
   summary_text <- data.frame(
     x = c(1, 2, 3),
     y = c(1, 1, 1),
@@ -256,102 +239,116 @@ if ("contrast" %in% colnames(gsea_table) && length(unique(gsea_table$contrast)) 
     ) +
     coord_cartesian(xlim = c(0.5, 3.5), ylim = c(0.5, 1.5))
   
-  # Create contrast breakdown plot with GROUPED (dodged) bars
-  p2 <- ggplot(contrast_data, aes(x = contrast, y = count, fill = status)) +
-    geom_bar(stat = "identity", position = "dodge", width = 0.7) +
-    scale_fill_manual(
-      values = c("Before" = "#E74C3C", "After" = "#27AE60"),
-      name = ""
-    ) +
-    labs(
-      title = "Pathways by Contrast",
-      x = "",
-      y = "Number of Pathways"
-    ) +
-    theme_minimal(base_size = 13) +
-    theme(
-      plot.title = element_text(hjust = 0.5, face = "bold", size = 15),
-      axis.text.x = element_text(angle = 0, hjust = 0.5, size = 11),
-      axis.text.y = element_text(size = 11),
-      axis.title.y = element_text(size = 13, face = "bold"),
-      legend.position = "top",
-      legend.text = element_text(size = 12),
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor = element_blank()
+  # Bottom panel: Enrichment direction by contrast
+  # Extract main collection prefix (e.g., "C5:BP:..." -> "C5", "H: hallmark..." -> "H")
+  if ("collection" %in% colnames(filtered_results)) {
+    filtered_results <- filtered_results %>%
+      mutate(main_collection = str_extract(collection, "^[^:]+"))
+    
+    n_main_collections <- length(unique(filtered_results$main_collection))
+  } else {
+    n_main_collections <- 0
+  }
+  
+  # Decide whether to use stacked bars by collection (≤12 collections) or simple grouped bars
+  use_stacked <- n_main_collections > 0 && n_main_collections <= 12
+  
+  if (use_stacked) {
+    # Stacked bars by main collection
+    direction_data <- filtered_results %>%
+      mutate(direction = ifelse(NES > 0, "Positive NES", "Negative NES")) %>%
+      group_by(contrast, direction, main_collection) %>%
+      summarise(count = n(), .groups = "drop") %>%
+      mutate(direction = factor(direction, levels = c("Negative NES", "Positive NES")))
+    
+    # Dynamic width based on number of contrasts
+    n_contrasts <- length(unique(direction_data$contrast))
+    plot_width <- max(12, 2 + 1.5 * n_contrasts)
+    
+    # Color palette for main collections (using a colorblind-friendly palette)
+    collection_colors <- setNames(
+      RColorBrewer::brewer.pal(min(12, n_main_collections), "Set3"),
+      sort(unique(direction_data$main_collection))
     )
-  
-  # Combine plots using patchwork
-  combined_plot <- p1 / p2 + plot_layout(heights = c(1, 2))
-  
-  # Save combined plot
-  ggsave(
-    "../results/filtering_summary.png",
-    plot = combined_plot,
-    width = 12,
-    height = 8,
-    dpi = 150
-  )
-  
-  cat("Filtering summary saved to: ../results/filtering_summary.png\n")
-} else {
-  cat("Skipping filtering summary plot (no contrast column)\n")
-}
-
-## Figure 2: Enrichment Direction by Contrast
-cat("Creating enrichment direction plot...\n")
-
-if ("NES" %in% colnames(filtered_results) && "contrast" %in% colnames(filtered_results)) {
-  # Check if multiple contrasts exist
-  n_contrasts <- length(unique(filtered_results$contrast))
-  
-  if (n_contrasts > 0) {
-    # Prepare data for ggplot with GROUPED (dodged) bars
+    
+    p2 <- ggplot(direction_data, aes(x = contrast, y = count, fill = main_collection)) +
+      geom_bar(stat = "identity", position = "stack") +
+      facet_wrap(~ direction, ncol = 2) +
+      scale_fill_manual(
+        values = collection_colors,
+        name = "Collection"
+      ) +
+      labs(
+        title = "Filtered Pathways by Contrast",
+        x = "",
+        y = "Number of Pathways"
+      ) +
+      theme_minimal(base_size = 13) +
+      theme(
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 15),
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 11),
+        axis.text.y = element_text(size = 11),
+        axis.title.y = element_text(size = 13, face = "bold"),
+        legend.position = "right",
+        legend.text = element_text(size = 11),
+        legend.title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(size = 12, face = "bold"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank()
+      )
+  } else {
+    # Simple grouped bars by direction (fallback)
     direction_data <- filtered_results %>%
       mutate(direction = ifelse(NES > 0, "Positive NES", "Negative NES")) %>%
       group_by(contrast, direction) %>%
       summarise(count = n(), .groups = "drop") %>%
       mutate(direction = factor(direction, levels = c("Negative NES", "Positive NES")))
     
-    # Create ggplot with grouped bars
-    p <- ggplot(direction_data, aes(x = contrast, y = count, fill = direction)) +
+    # Dynamic width based on number of contrasts
+    n_contrasts <- length(unique(direction_data$contrast))
+    plot_width <- max(12, 2 + 1.5 * n_contrasts)
+    
+    p2 <- ggplot(direction_data, aes(x = contrast, y = count, fill = direction)) +
       geom_bar(stat = "identity", position = "dodge", width = 0.7) +
       scale_fill_manual(
         values = c("Negative NES" = "#E67E22", "Positive NES" = "#3498DB"),
         name = ""
       ) +
       labs(
-        title = "Enrichment Direction by Contrast",
+        title = "Filtered Pathways by Contrast",
         x = "",
         y = "Number of Pathways"
       ) +
-      theme_minimal(base_size = 14) +
+      theme_minimal(base_size = 13) +
       theme(
-        plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
-        axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, size = 12),
-        axis.text.y = element_text(size = 12),
-        axis.title.y = element_text(size = 14, face = "bold"),
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 15),
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 11),
+        axis.text.y = element_text(size = 11),
+        axis.title.y = element_text(size = 13, face = "bold"),
         legend.position = "top",
         legend.text = element_text(size = 12),
         panel.grid.major.x = element_blank(),
         panel.grid.minor = element_blank()
       )
-    
-    # Save plot
-    ggsave(
-      "../results/enrichment_direction.png",
-      plot = p,
-      width = 12,
-      height = 6,
-      dpi = 150
-    )
-    
-    cat("Enrichment direction plot saved to: ../results/enrichment_direction.png\n")
-  } else {
-    cat("Skipping enrichment direction plot (only one contrast or no NES column)\n")
   }
+  
+  # Combine plots using patchwork
+  combined_plot <- p1 / p2 + plot_layout(heights = c(1, 2))
+  
+  # Save combined plot with dynamic width
+  ggsave(
+    "../results/filtering_summary.png",
+    plot = combined_plot,
+    width = plot_width,
+    height = 8,
+    dpi = 150
+  )
+  
+  cat("Filtering summary saved to: ../results/filtering_summary.png\n")
 } else {
-  cat("Skipping enrichment direction plot (missing NES or contrast column)\n")
+  cat("Skipping filtering summary plot (missing required columns)\n")
 }
+
 
 # Print comprehensive filtering summary
 cat("\n")
