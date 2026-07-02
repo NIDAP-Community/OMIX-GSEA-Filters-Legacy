@@ -272,8 +272,7 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
     )
     
     p2 <- ggplot(direction_data, aes(x = contrast, y = count, fill = main_collection)) +
-      geom_bar(stat = "identity", position = "stack") +
-      facet_wrap(~ direction, ncol = 2) +
+      geom_col(aes(group = direction), position = position_dodge(width = 0.8), width = 0.35) +
       scale_fill_manual(
         values = collection_colors,
         name = "Collection"
@@ -281,18 +280,19 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
       labs(
         title = "Filtered Pathways by Contrast",
         x = "",
-        y = "Number of Pathways"
+        y = "Number of Pathways",
+        caption = "Each contrast shows two bars: left = down-regulated pathways (negative NES), right = up-regulated pathways (positive NES)"
       ) +
       theme_minimal(base_size = 13) +
       theme(
         plot.title = element_text(hjust = 0.5, face = "bold", size = 15),
+        plot.caption = element_text(hjust = 0.5, size = 10, color = "gray40", margin = margin(t = 10)),
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 11),
         axis.text.y = element_text(size = 11),
         axis.title.y = element_text(size = 13, face = "bold"),
         legend.position = "right",
         legend.text = element_text(size = 11),
         legend.title = element_text(size = 12, face = "bold"),
-        strip.text = element_text(size = 12, face = "bold"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor = element_blank()
       )
