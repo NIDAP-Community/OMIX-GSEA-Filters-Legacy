@@ -3,7 +3,7 @@
 	"named_parameters": true,
 	"general": {
 		"title": "GSEA Filter",
-		"instructions": "Filter GSEA enrichment results from OMIX GSEA by p-value, enrichment score, pathway size, and more.\n\nReplace the demo data with your own GSEA results data asset before running."
+		"instructions": "Filter GSEA enrichment results from OMIX GSEA by p-value, enrichment score, pathway size, and more.\n\nUpload your GSEA results CSV file or replace the demo data asset before running."
 	},
 	"datasets": [
 		{
@@ -16,7 +16,7 @@
 		{
 			"id": "input",
 			"name": "Input Data",
-			"help_text": "Select the GSEA results data asset"
+			"help_text": "Upload your GSEA results or select a data asset"
 		},
 		{
 			"id": "pvalue",
@@ -45,6 +45,15 @@
 		}
 	],
 	"parameters": [
+		{
+			"id": "uploadedInputFile",
+			"category": "input",
+			"name": "Upload GSEA Results File",
+			"param_name": "input_file",
+			"help_text": "Upload a CSV file containing GSEA results (gsea_results.csv format)",
+			"type": "file",
+			"value_type": "string"
+		},
 		{
 			"id": "aGsGx43E3kF9dgUL",
 			"category": "pvalue",

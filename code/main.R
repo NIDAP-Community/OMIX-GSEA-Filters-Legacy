@@ -20,6 +20,8 @@ source("/code/filter_gsea_function.R")
 
 # Define command line options
 option_list <- list(
+  make_option("--input_file", type = "character", default = NULL,
+              help = "Path to uploaded GSEA results CSV file (takes priority over data assets)"),
   make_option("--p_value_filter", type = "character", default = "adjusted p-value",
               help = "P-value type for filtering [default: %default]"),
   make_option("--p_value_threshold", type = "double", default = 0.05,
@@ -70,52 +72,73 @@ genes_vec <- parse_comma_list(opt$genes_to_include)
 contrasts_vec <- parse_comma_list(opt$contrasts)
 
 # Set file paths
-# Auto-detect GSEA results from attached data asset
-# Data assets are mounted under /data/<mount_point>
-# Search for gsea_results.csv or gsea_results.rds in /data subdirectories
-data_dirs <- list.dirs("/data", recursive = FALSE, full.names = TRUE)
+# Priority: uploaded file > attached data asset
 input_file <- NULL
 file_format <- NULL
+input_source <- NULL
 
-for (dir in data_dirs) {
-  # Check for CSV first
-  candidate_csv <- file.path(dir, "gsea_results.csv")
-  if (file.exists(candidate_csv)) {
-    input_file <- candidate_csv
+# 1. Check if user uploaded a file via App Panel
+if (!is.null(opt$input_file) && opt$input_file != "" && opt$input_file != "NULL") {
+  input_file <- opt$input_file
+  input_source <- "uploaded file"
+  
+  # Detect format from file extension
+  if (grepl("\\.rds$", input_file, ignore.case = TRUE)) {
+    file_format <- "rds"
+  } else if (grepl("\\.(csv|tsv|txt)$", input_file, ignore.case = TRUE)) {
     file_format <- "csv"
-    break
+  } else {
+    # Default to CSV for unknown extensions
+    file_format <- "csv"
+    cat("Warning: Unknown file extension, assuming CSV format\n")
   }
   
-  # Check for RDS
-  candidate_rds <- file.path(dir, "gsea_results.rds")
-  if (file.exists(candidate_rds)) {
-    input_file <- candidate_rds
-    file_format <- "rds"
-    break
+  cat("Using uploaded file:", input_file, "\n")
+}
+
+# 2. Otherwise, auto-detect GSEA results from attached data asset
+if (is.null(input_file)) {
+  # Data assets are mounted under /data/<mount_point>
+  # Search for gsea_results.csv or gsea_results.rds in /data subdirectories
+  data_dirs <- list.dirs("/data", recursive = FALSE, full.names = TRUE)
+  
+  for (dir in data_dirs) {
+    # Check for CSV first
+    candidate_csv <- file.path(dir, "gsea_results.csv")
+    if (file.exists(candidate_csv)) {
+      input_file <- candidate_csv
+      file_format <- "csv"
+      input_source <- "attached data asset"
+      break
+    }
+    
+    # Check for RDS
+    candidate_rds <- file.path(dir, "gsea_results.rds")
+    if (file.exists(candidate_rds)) {
+      input_file <- candidate_rds
+      file_format <- "rds"
+      input_source <- "attached data asset"
+      break
+    }
+  }
+  
+  if (!is.null(input_file)) {
+    cat("Using file from attached data asset:", input_file, "\n")
   }
 }
 
-# Fallback to old behavior if no data asset attached
+# 3. Error if no input found
 if (is.null(input_file)) {
-  input_file <- opt$input_file
-  if (!is.null(opt$input_file) && opt$input_file != "") {
-    cat("Warning: No gsea_results.csv or gsea_results.rds found in attached data assets.\n")
-    cat("Attempting to use provided input_file parameter.\n")
-    # Detect format from file extension
-    if (grepl("\\.rds$", input_file, ignore.case = TRUE)) {
-      file_format <- "rds"
-    } else {
-      file_format <- "csv"
-    }
-  } else {
-    stop("Error: No GSEA results data asset attached and no input_file specified.")
-  }
+  stop("Error: No GSEA results file found. Please either:\n",
+       "  1. Upload a CSV file via the 'Upload GSEA Results File' parameter, OR\n",
+       "  2. Attach a data asset containing 'gsea_results.csv' or 'gsea_results.rds'")
 }
 
 output_file <- "../results/filtered_gsea_results.csv"
 
 # Read input GSEA table
 cat("Reading GSEA table from:", input_file, "\n")
+cat("Input source:", input_source, "\n")
 cat("File format:", file_format, "\n")
 
 if (!file.exists(input_file)) {

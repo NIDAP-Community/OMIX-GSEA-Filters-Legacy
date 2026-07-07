@@ -5,9 +5,12 @@ Filter GSEA table formatted output from Omix GSEA based on multiple criteria inc
 ## Input
 
 - **GSEA Results Table**: CSV or RDS file from OMIX GSEA output
-  - Supported formats: `gsea_results.csv` or `gsea_results.rds`
+  - **Option 1**: Upload a CSV file directly via the App Panel ("Upload GSEA Results File" parameter)
+  - **Option 2**: Attach a data asset containing `gsea_results.csv` or `gsea_results.rds`
   - Required columns: `contrast`, `collection`, `pathway`, `pval`, `padj`, `ES`, `NES`, `size`, `leadingEdge`, etc.
   - RDS files must contain a data frame with the same structure
+  
+**Priority**: If you upload a file via the App Panel, it takes priority over any attached data assets.
 
 ## Output
 
@@ -25,32 +28,36 @@ Filter GSEA table formatted output from Omix GSEA based on multiple criteria inc
 
 ### Using App Panel (Recommended)
 
-The capsule includes a comprehensive App Panel with five parameter categories:
+The capsule includes a comprehensive App Panel with six parameter categories:
 
-1. **P-value Filtering**
+1. **Input Data**
+   - Upload your GSEA results CSV file directly, OR
+   - Use an attached data asset (data asset section below)
+
+2. **P-value Filtering**
    - Choose p-value type (adjusted/raw)
    - Set significance threshold (default: 0.05)
 
-2. **Enrichment Score Filtering**
+3. **Enrichment Score Filtering**
    - Select score type (NES/ES/none)
    - Set threshold and direction (+/-, +, -)
 
-3. **Pathway Size Filtering**
+4. **Pathway Size Filtering**
    - Choose size type (pathway/leading edge)
    - Set minimum size cutoff
 
-4. **Advanced Filters**
+5. **Advanced Filters**
    - Top N pathways per collection
    - Filter by MSigDB collections (e.g., H, C2)
    - Filter by specific pathways
    - Filter by genes (in LE or pathway)
    - Filter by contrasts (keep/remove mode)
 
-5. **Display Options**
+6. **Display Options**
    - Bubble color variable
    - Sort order
 
-Simply attach your GSEA results data asset and configure parameters through the App Panel interface.
+You can either upload a CSV file directly or attach a GSEA results data asset, then configure filtering parameters through the App Panel interface.
 
 ### Command Line Usage
 
@@ -58,6 +65,11 @@ You can also run from command line with flags:
 
 ```bash
 ./run --p_value_threshold 0.01 --enrichment_score_threshold 1.5 --size_cutoff 15
+```
+
+**With uploaded file:**
+```bash
+./run --input_file /data/my_gsea_results.csv --p_value_threshold 0.01
 ```
 
 **Common Examples:**
