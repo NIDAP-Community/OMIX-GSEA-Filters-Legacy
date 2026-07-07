@@ -251,7 +251,7 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
   p1 <- ggplot(summary_text, aes(x = x, y = y, label = label, color = color)) +
     geom_text(size = 9, fontface = "bold", lineheight = 0.85) +
     scale_color_manual(
-      values = c("before" = "#E74C3C", "arrow" = "#7F8C8D", "after" = "#27AE60"),
+      values = c("before" = "#EF5350", "arrow" = "#757575", "after" = "#66BB6A"),
       guide = "none"
     ) +
     labs(title = "Total Unique Pathways Filtered") +
@@ -288,6 +288,32 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
     n_contrasts <- length(unique(direction_data$contrast))
     plot_width <- max(12, 2 + 1.5 * n_contrasts)
     
+    # Get contrast order for annotations and separators
+    contrast_levels <- unique(direction_data$contrast)
+    
+    # Calculate vertical separator positions (between contrasts, at midpoints)
+    if (n_contrasts > 1) {
+      separator_positions <- seq(1.5, n_contrasts - 0.5, by = 1)
+    } else {
+      separator_positions <- numeric(0)
+    }
+    
+    # Prepare UP/DN annotation data
+    annotation_data <- data.frame(
+      contrast = rep(contrast_levels, each = 2),
+      label = rep(c("DN", "UP"), times = n_contrasts),
+      direction = rep(c("Negative NES", "Positive NES"), times = n_contrasts)
+    )
+    # Match factor levels
+    annotation_data$direction <- factor(
+      annotation_data$direction, 
+      levels = c("Negative NES", "Positive NES")
+    )
+    
+    # Calculate y position for annotations (slightly above max count)
+    max_count <- max(direction_data$count, na.rm = TRUE)
+    annotation_y <- max_count * 1.05
+    
     # Color palette for main collections (using a colorblind-friendly palette)
     collection_colors <- setNames(
       RColorBrewer::brewer.pal(min(12, n_main_collections), "Set3"),
@@ -296,6 +322,25 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
     
     p2 <- ggplot(direction_data, aes(x = contrast, y = count, fill = main_collection)) +
       geom_col(aes(group = direction), position = position_dodge(width = 0.8), width = 0.35) +
+      # Add vertical separator lines between contrast groups
+      {if (length(separator_positions) > 0) {
+        geom_vline(xintercept = separator_positions, linetype = "solid", 
+                   color = "gray60", linewidth = 0.6)
+      }} +
+      # Add UP/DN labels above bars (color-coded to match bars)
+      geom_text(
+        data = annotation_data,
+        aes(x = contrast, y = annotation_y, label = label, color = direction, group = direction),
+        position = position_dodge(width = 0.8),
+        vjust = -0.5,
+        size = 3.5,
+        fontface = "bold",
+        inherit.aes = FALSE,
+        show.legend = FALSE
+      ) +
+      scale_color_manual(
+        values = c("Negative NES" = "#1565C0", "Positive NES" = "#D32F2F")
+      ) +
       scale_fill_manual(
         values = collection_colors,
         name = "Collection"
@@ -304,7 +349,7 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
         title = "Filtered Pathways by Contrast",
         x = "",
         y = "Number of Pathways",
-        caption = "Each contrast shows two bars: left = down-regulated pathways (negative NES), right = up-regulated pathways (positive NES)"
+        caption = "Each contrast shows two bars: DN (down-regulated, negative NES) and UP (up-regulated, positive NES)"
       ) +
       theme_minimal(base_size = 13) +
       theme(
@@ -318,7 +363,9 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
         legend.title = element_text(size = 12, face = "bold"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor = element_blank()
-      )
+      ) +
+      # Expand y-axis to accommodate UP/DN labels
+      scale_y_continuous(expand = expansion(mult = c(0.02, 0.12)))
   } else {
     # Simple grouped bars by direction (fallback)
     direction_data <- filtered_results %>%
@@ -331,20 +378,67 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
     n_contrasts <- length(unique(direction_data$contrast))
     plot_width <- max(12, 2 + 1.5 * n_contrasts)
     
+    # Get contrast order for annotations and separators
+    contrast_levels <- unique(direction_data$contrast)
+    
+    # Calculate vertical separator positions (between contrasts, at midpoints)
+    if (n_contrasts > 1) {
+      separator_positions <- seq(1.5, n_contrasts - 0.5, by = 1)
+    } else {
+      separator_positions <- numeric(0)
+    }
+    
+    # Prepare UP/DN annotation data
+    annotation_data <- data.frame(
+      contrast = rep(contrast_levels, each = 2),
+      label = rep(c("DN", "UP"), times = n_contrasts),
+      direction = rep(c("Negative NES", "Positive NES"), times = n_contrasts)
+    )
+    # Match factor levels
+    annotation_data$direction <- factor(
+      annotation_data$direction, 
+      levels = c("Negative NES", "Positive NES")
+    )
+    
+    # Calculate y position for annotations (slightly above max count)
+    max_count <- max(direction_data$count, na.rm = TRUE)
+    annotation_y <- max_count * 1.05
+    
     p2 <- ggplot(direction_data, aes(x = contrast, y = count, fill = direction)) +
       geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+      # Add vertical separator lines between contrast groups
+      {if (length(separator_positions) > 0) {
+        geom_vline(xintercept = separator_positions, linetype = "solid", 
+                   color = "gray60", linewidth = 0.6)
+      }} +
+      # Add UP/DN labels above bars (color-coded to match bars)
+      geom_text(
+        data = annotation_data,
+        aes(x = contrast, y = annotation_y, label = label, color = direction, group = direction),
+        position = position_dodge(width = 0.7),
+        vjust = -0.5,
+        size = 3.5,
+        fontface = "bold",
+        inherit.aes = FALSE,
+        show.legend = FALSE
+      ) +
+      scale_color_manual(
+        values = c("Negative NES" = "#1565C0", "Positive NES" = "#D32F2F")
+      ) +
       scale_fill_manual(
-        values = c("Negative NES" = "#E67E22", "Positive NES" = "#3498DB"),
+        values = c("Negative NES" = "#1565C0", "Positive NES" = "#D32F2F"),
         name = ""
       ) +
       labs(
         title = "Filtered Pathways by Contrast",
         x = "",
-        y = "Number of Pathways"
+        y = "Number of Pathways",
+        caption = "Each contrast shows two bars: DN (down-regulated, negative NES) and UP (up-regulated, positive NES)"
       ) +
       theme_minimal(base_size = 13) +
       theme(
         plot.title = element_text(hjust = 0.5, face = "bold", size = 15),
+        plot.caption = element_text(hjust = 0.5, size = 10, color = "gray40", margin = margin(t = 10)),
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 11),
         axis.text.y = element_text(size = 11),
         axis.title.y = element_text(size = 13, face = "bold"),
@@ -352,7 +446,9 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
         legend.text = element_text(size = 12),
         panel.grid.major.x = element_blank(),
         panel.grid.minor = element_blank()
-      )
+      ) +
+      # Expand y-axis to accommodate UP/DN labels
+      scale_y_continuous(expand = expansion(mult = c(0.02, 0.12)))
   }
   
   # Combine plots using patchwork
