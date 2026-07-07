@@ -49,9 +49,7 @@ option_list <- list(
   make_option("--contrast_filter", type = "character", default = "none",
               help = "Contrast filter mode [default: %default]"),
   make_option("--contrasts", type = "character", default = NULL,
-              help = "Contrasts to keep/remove (comma-separated)"),
-  make_option("--sort_decreasing", type = "logical", default = FALSE,
-              help = "Sort output in decreasing order [default: %default]")
+              help = "Contrasts to keep/remove (comma-separated)")
 )
 
 # Parse arguments
@@ -243,9 +241,9 @@ filtered_results <- GSEA_Filters(
   contrast_filter = opt$contrast_filter,
   contrasts = contrasts_vec,
   
-  # Output options
+  # Output options (sort by p-value ascending = most significant first)
   columns_to_sort_output_by = c("padj", "pval"),
-  sort_output_in_decreasing_order = opt$sort_decreasing,
+  sort_output_in_decreasing_order = FALSE,
   
   # Display warnings
   display_warnings = -1
@@ -260,30 +258,24 @@ cat("Creating filtering summary plot...\n")
 if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered_results) && 
     "contrast" %in% colnames(filtered_results)) {
   
-  # Check the USER'S filtering parameter for direction-specific counting
-  # Use qc_filtered_results (after QC filters but before selection filters) for "before"
-  if (opt$enrichment_score_sign == "-") {
-    # Negative only - count DN pathways after QC filters
-    before_total <- length(unique(qc_filtered_results$pathway[qc_filtered_results$NES < 0]))
-    after_total <- length(unique(filtered_results$pathway))
-    retention_pct <- round(100 * after_total / before_total, 1)
-    before_label <- paste0(before_total, "\nUnique DN\nPathways\nBefore")
-    after_label <- paste0(after_total, "\nUnique DN\nPathways\nAfter\n(", retention_pct, "%)")
-  } else if (opt$enrichment_score_sign == "+") {
-    # Positive only - count UP pathways after QC filters
-    before_total <- length(unique(qc_filtered_results$pathway[qc_filtered_results$NES > 0]))
-    after_total <- length(unique(filtered_results$pathway))
-    retention_pct <- round(100 * after_total / before_total, 1)
-    before_label <- paste0(before_total, "\nUnique UP\nPathways\nBefore")
-    after_label <- paste0(after_total, "\nUnique UP\nPathways\nAfter\n(", retention_pct, "%)")
-  } else {
-    # Both directions - count all pathways after QC filters
-    before_total <- length(unique(qc_filtered_results$pathway))
-    after_total <- length(unique(filtered_results$pathway))
-    retention_pct <- round(100 * after_total / before_total, 1)
-    before_label <- paste0(before_total, "\nUnique\nPathways\nBefore")
-    after_label <- paste0(after_total, "\nUnique\nPathways\nAfter\n(", retention_pct, "%)")
-  }
+  # Simplified counting: always use original input for "before"
+  # This shows the total reduction from input to final filtered output
+  
+  # Before: count all unique pathways from original input (no filters)
+  before_total <- length(unique(gsea_table$pathway))
+  
+  # After: count all unique pathways from fully filtered results
+  after_total <- length(unique(filtered_results$pathway))
+  
+  retention_pct <- round(100 * after_total / before_total, 1)
+  
+  cat("\n=== Summary Counts (for visualization) ===\n")
+  cat("Original input unique pathways:", before_total, "\n")
+  cat("Final filtered unique pathways:", after_total, "\n")
+  cat("Retention:", retention_pct, "%\n")
+  
+  before_label <- paste0(before_total, "\nUnique\nPathways\nBefore")
+  after_label <- paste0(after_total, "\nUnique\nPathways\nAfter\n(", retention_pct, "%)")
   
   # Top panel: Text summary
   summary_text <- data.frame(
@@ -341,10 +333,14 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
     contrast_levels <- unique(direction_data$contrast)
     
     # Prepare UP/DN annotation data - only for bars that actually exist in the data
-    # Calculate the total height of each stacked bar (sum of all collections per contrast-direction)
+    # Calculate the height of each bar per contrast-direction
     bar_heights <- direction_data %>%
       group_by(contrast, direction) %>%
-      summarise(total_count = sum(count), .groups = "drop")
+      summarise(bar_count = sum(count), .groups = "drop")
+    
+    # Compute the GLOBAL maximum height across ALL contrasts
+    # All labels will be placed at this same height
+    global_max_height <- max(bar_heights$bar_count, na.rm = TRUE)
     
     # Detect which directions exist in the actual data
     has_negative <- any(bar_heights$direction == "Negative NES")
@@ -357,10 +353,11 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
       mutate(x_pos = row_number())
     
     # Build annotation data only for bars that exist
+    # Use global_max_height so ALL labels align at the same height (tallest bar across plot)
     annotation_data <- bar_heights %>%
       mutate(
         label = ifelse(direction == "Negative NES", "DN", "UP"),
-        y = total_count  # Include count for position_stack
+        y = global_max_height  # Place ALL labels at global max bar height
       ) %>%
       select(contrast, direction, x_pos, y, label)
     
@@ -474,10 +471,14 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
     contrast_levels <- unique(direction_data$contrast)
     
     # Prepare UP/DN annotation data - only for bars that actually exist in the data
-    # Calculate the total height of each stacked bar (sum of all collections per contrast-direction)
+    # Calculate the height of each bar per contrast-direction
     bar_heights <- direction_data %>%
       group_by(contrast, direction) %>%
-      summarise(total_count = sum(count), .groups = "drop")
+      summarise(bar_count = sum(count), .groups = "drop")
+    
+    # Compute the GLOBAL maximum height across ALL contrasts
+    # All labels will be placed at this same height
+    global_max_height <- max(bar_heights$bar_count, na.rm = TRUE)
     
     # Detect which directions exist in the actual data
     has_negative <- any(bar_heights$direction == "Negative NES")
@@ -490,10 +491,11 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
       mutate(x_pos = row_number())
     
     # Build annotation data only for bars that exist
+    # Use global_max_height so ALL labels align at the same height (tallest bar across plot)
     annotation_data <- bar_heights %>%
       mutate(
         label = ifelse(direction == "Negative NES", "DN", "UP"),
-        y = total_count  # Include count for position_stack
+        y = global_max_height  # Place ALL labels at global max bar height
       ) %>%
       select(contrast, direction, x_pos, y, label)
     
@@ -529,10 +531,6 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
     contrast_label_positions <- contrast_positions$x_center
     contrast_levels_ordered <- contrast_positions$contrast
     
-    # Calculate y position for annotations (slightly above max count)
-    max_count <- max(direction_data$count, na.rm = TRUE)
-    annotation_y <- max_count * 1.05
-    
     p2 <- ggplot(direction_data, aes(x = contrast, y = count, fill = direction)) +
       geom_bar(stat = "identity", position = "dodge", width = 0.7) +
       # Add vertical separator lines between contrast groups
@@ -540,10 +538,10 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
         geom_vline(xintercept = separator_positions, linetype = "solid", 
                    color = "gray60", linewidth = 0.6)
       }} +
-      # Add UP/DN labels above bars (color-coded to match bars)
+      # Add UP/DN labels at the top of each bar (color-coded to match bars)
       geom_text(
         data = annotation_data,
-        aes(x = contrast, y = annotation_y, label = label, color = direction, group = direction),
+        aes(x = contrast, y = y, label = label, color = direction, group = direction),
         position = position_dodge(width = 0.7),
         vjust = -0.5,
         size = 3.5,
