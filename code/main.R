@@ -231,27 +231,32 @@ cat("Creating filtering summary plot...\n")
 if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results) && 
     "contrast" %in% colnames(filtered_results)) {
   
-  # Count UNIQUE pathways for top panel
-  before_total <- length(unique(gsea_table$pathway))
-  after_total <- length(unique(filtered_results$pathway))
-  retention_pct <- round(100 * after_total / before_total, 1)
-  
-  # Check if filtering by direction
+  # Check if filtering by direction (look at what's in the filtered results)
   has_negative_after <- any(filtered_results$NES < 0)
   has_positive_after <- any(filtered_results$NES > 0)
   
-  # Create direction-specific labels if filtering by direction
+  # Count direction-specific pathways in BEFORE data to match filtering
   if (has_negative_after && !has_positive_after) {
-    # Negative only
-    after_label <- paste0(after_total, "\nUnique DN\nPathways\n(", retention_pct, "%)")
+    # Negative only - count DN pathways before
+    before_total <- length(unique(gsea_table$pathway[gsea_table$NES < 0]))
+    after_total <- length(unique(filtered_results$pathway))
+    retention_pct <- round(100 * after_total / before_total, 1)
+    before_label <- paste0(before_total, "\nUnique DN\nPathways\nBefore")
+    after_label <- paste0(after_total, "\nUnique DN\nPathways\nAfter\n(", retention_pct, "%)")
   } else if (has_positive_after && !has_negative_after) {
-    # Positive only
-    after_label <- paste0(after_total, "\nUnique UP\nPathways\n(", retention_pct, "%)")
+    # Positive only - count UP pathways before
+    before_total <- length(unique(gsea_table$pathway[gsea_table$NES > 0]))
+    after_total <- length(unique(filtered_results$pathway))
+    retention_pct <- round(100 * after_total / before_total, 1)
+    before_label <- paste0(before_total, "\nUnique UP\nPathways\nBefore")
+    after_label <- paste0(after_total, "\nUnique UP\nPathways\nAfter\n(", retention_pct, "%)")
   } else {
-    # Both directions
-    n_negative <- length(unique(filtered_results$pathway[filtered_results$NES < 0]))
-    n_positive <- length(unique(filtered_results$pathway[filtered_results$NES > 0]))
-    after_label <- paste0(after_total, "\nUnique\nPathways\n(", n_negative, " DN, ", n_positive, " UP)")
+    # Both directions - count all pathways (no DN/UP breakdown since pathways can be both across contrasts)
+    before_total <- length(unique(gsea_table$pathway))
+    after_total <- length(unique(filtered_results$pathway))
+    retention_pct <- round(100 * after_total / before_total, 1)
+    before_label <- paste0(before_total, "\nUnique\nPathways\nBefore")
+    after_label <- paste0(after_total, "\nUnique\nPathways\nAfter\n(", retention_pct, "%)")
   }
   
   # Top panel: Text summary
@@ -259,7 +264,7 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
     x = c(1, 2, 3),
     y = c(1, 1, 1),
     label = c(
-      paste0(before_total, "\nUnique\nPathways\nBefore"),
+      before_label,
       "→",
       after_label
     ),
@@ -609,12 +614,34 @@ if (length(criteria_list) == 0) {
 
 # Overall Results
 cat("\nOverall Results:\n")
-if ("pathway" %in% colnames(gsea_table)) {
-  before_unique <- length(unique(gsea_table$pathway))
-  after_unique <- length(unique(filtered_results$pathway))
-  unique_retention <- round(100 * after_unique / before_unique, 1)
-  cat(sprintf("  • Unique pathways: %d → %d (%.1f%% retained)\n", 
-              before_unique, after_unique, unique_retention))
+if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(gsea_table)) {
+  # Check if filtering by direction (look at what's in the filtered results)
+  has_negative_after <- any(filtered_results$NES < 0)
+  has_positive_after <- any(filtered_results$NES > 0)
+  
+  # Count direction-specific pathways to match filtering
+  if (has_negative_after && !has_positive_after) {
+    # Negative only - count DN pathways before
+    before_unique <- length(unique(gsea_table$pathway[gsea_table$NES < 0]))
+    after_unique <- length(unique(filtered_results$pathway))
+    unique_retention <- round(100 * after_unique / before_unique, 1)
+    cat(sprintf("  • Unique DN pathways: %d → %d (%.1f%% retained)\n", 
+                before_unique, after_unique, unique_retention))
+  } else if (has_positive_after && !has_negative_after) {
+    # Positive only - count UP pathways before
+    before_unique <- length(unique(gsea_table$pathway[gsea_table$NES > 0]))
+    after_unique <- length(unique(filtered_results$pathway))
+    unique_retention <- round(100 * after_unique / before_unique, 1)
+    cat(sprintf("  • Unique UP pathways: %d → %d (%.1f%% retained)\n", 
+                before_unique, after_unique, unique_retention))
+  } else {
+    # Both directions - count all pathways
+    before_unique <- length(unique(gsea_table$pathway))
+    after_unique <- length(unique(filtered_results$pathway))
+    unique_retention <- round(100 * after_unique / before_unique, 1)
+    cat(sprintf("  • Unique pathways: %d → %d (%.1f%% retained)\n", 
+                before_unique, after_unique, unique_retention))
+  }
 }
 before_rows <- nrow(gsea_table)
 after_rows <- nrow(filtered_results)
