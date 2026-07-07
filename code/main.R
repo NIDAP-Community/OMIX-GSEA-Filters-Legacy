@@ -236,6 +236,24 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
   after_total <- length(unique(filtered_results$pathway))
   retention_pct <- round(100 * after_total / before_total, 1)
   
+  # Check if filtering by direction
+  has_negative_after <- any(filtered_results$NES < 0)
+  has_positive_after <- any(filtered_results$NES > 0)
+  
+  # Create direction-specific labels if filtering by direction
+  if (has_negative_after && !has_positive_after) {
+    # Negative only
+    after_label <- paste0(after_total, "\nUnique DN\nPathways\n(", retention_pct, "%)")
+  } else if (has_positive_after && !has_negative_after) {
+    # Positive only
+    after_label <- paste0(after_total, "\nUnique UP\nPathways\n(", retention_pct, "%)")
+  } else {
+    # Both directions
+    n_negative <- length(unique(filtered_results$pathway[filtered_results$NES < 0]))
+    n_positive <- length(unique(filtered_results$pathway[filtered_results$NES > 0]))
+    after_label <- paste0(after_total, "\nUnique\nPathways\n(", n_negative, " DN, ", n_positive, " UP)")
+  }
+  
   # Top panel: Text summary
   summary_text <- data.frame(
     x = c(1, 2, 3),
@@ -243,7 +261,7 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
     label = c(
       paste0(before_total, "\nUnique\nPathways\nBefore"),
       "→",
-      paste0(after_total, "\nUnique\nPathways\nAfter\n(", retention_pct, "%)")
+      after_label
     ),
     color = c("before", "arrow", "after")
   )
@@ -298,12 +316,31 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
       separator_positions <- numeric(0)
     }
     
-    # Prepare UP/DN annotation data
-    annotation_data <- data.frame(
-      contrast = rep(contrast_levels, each = 2),
-      label = rep(c("DN", "UP"), times = n_contrasts),
-      direction = rep(c("Negative NES", "Positive NES"), times = n_contrasts)
-    )
+    # Prepare UP/DN annotation data - only for directions present in data
+    present_directions <- unique(direction_data$direction)
+    has_negative <- "Negative NES" %in% present_directions
+    has_positive <- "Positive NES" %in% present_directions
+    
+    # Build annotation data only for present directions
+    annotation_list <- list()
+    for (contrast in contrast_levels) {
+      if (has_negative) {
+        annotation_list[[length(annotation_list) + 1]] <- data.frame(
+          contrast = contrast,
+          label = "DN",
+          direction = "Negative NES"
+        )
+      }
+      if (has_positive) {
+        annotation_list[[length(annotation_list) + 1]] <- data.frame(
+          contrast = contrast,
+          label = "UP",
+          direction = "Positive NES"
+        )
+      }
+    }
+    annotation_data <- do.call(rbind, annotation_list)
+    
     # Match factor levels
     annotation_data$direction <- factor(
       annotation_data$direction, 
@@ -349,7 +386,13 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
         title = "Filtered Pathways by Contrast",
         x = "",
         y = "Number of Pathways",
-        caption = "Each contrast shows two bars: DN (down-regulated, negative NES) and UP (up-regulated, positive NES)"
+        caption = if (has_negative && has_positive) {
+          "Each contrast shows two bars: DN (down-regulated, negative NES) and UP (up-regulated, positive NES)"
+        } else if (has_negative) {
+          "Bars show DN (down-regulated, negative NES) pathways only"
+        } else {
+          "Bars show UP (up-regulated, positive NES) pathways only"
+        }
       ) +
       theme_minimal(base_size = 13) +
       theme(
@@ -388,12 +431,31 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
       separator_positions <- numeric(0)
     }
     
-    # Prepare UP/DN annotation data
-    annotation_data <- data.frame(
-      contrast = rep(contrast_levels, each = 2),
-      label = rep(c("DN", "UP"), times = n_contrasts),
-      direction = rep(c("Negative NES", "Positive NES"), times = n_contrasts)
-    )
+    # Prepare UP/DN annotation data - only for directions present in data
+    present_directions <- unique(direction_data$direction)
+    has_negative <- "Negative NES" %in% present_directions
+    has_positive <- "Positive NES" %in% present_directions
+    
+    # Build annotation data only for present directions
+    annotation_list <- list()
+    for (contrast in contrast_levels) {
+      if (has_negative) {
+        annotation_list[[length(annotation_list) + 1]] <- data.frame(
+          contrast = contrast,
+          label = "DN",
+          direction = "Negative NES"
+        )
+      }
+      if (has_positive) {
+        annotation_list[[length(annotation_list) + 1]] <- data.frame(
+          contrast = contrast,
+          label = "UP",
+          direction = "Positive NES"
+        )
+      }
+    }
+    annotation_data <- do.call(rbind, annotation_list)
+    
     # Match factor levels
     annotation_data$direction <- factor(
       annotation_data$direction, 
@@ -433,7 +495,13 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
         title = "Filtered Pathways by Contrast",
         x = "",
         y = "Number of Pathways",
-        caption = "Each contrast shows two bars: DN (down-regulated, negative NES) and UP (up-regulated, positive NES)"
+        caption = if (has_negative && has_positive) {
+          "Each contrast shows two bars: DN (down-regulated, negative NES) and UP (up-regulated, positive NES)"
+        } else if (has_negative) {
+          "Bars show DN (down-regulated, negative NES) pathways only"
+        } else {
+          "Bars show UP (up-regulated, positive NES) pathways only"
+        }
       ) +
       theme_minimal(base_size = 13) +
       theme(
