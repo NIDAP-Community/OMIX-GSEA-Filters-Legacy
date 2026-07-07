@@ -50,8 +50,6 @@ option_list <- list(
               help = "Contrast filter mode [default: %default]"),
   make_option("--contrasts", type = "character", default = NULL,
               help = "Contrasts to keep/remove (comma-separated)"),
-  make_option("--bubble_color_variable", type = "character", default = "collection",
-              help = "Bubble color variable [default: %default]"),
   make_option("--sort_decreasing", type = "logical", default = FALSE,
               help = "Sort output in decreasing order [default: %default]")
 )
@@ -203,9 +201,6 @@ qc_filtered_results <- GSEA_Filters(
   contrast_filter = "none",
   contrasts = NULL,
   
-  # Plotting options
-  bubble_color_variable = opt$bubble_color_variable,
-  
   # Output options (don't sort for intermediate)
   columns_to_sort_output_by = c("padj", "pval"),
   sort_output_in_decreasing_order = FALSE,
@@ -247,9 +242,6 @@ filtered_results <- GSEA_Filters(
   # Contrast filtering
   contrast_filter = opt$contrast_filter,
   contrasts = contrasts_vec,
-  
-  # Plotting options
-  bubble_color_variable = opt$bubble_color_variable,
   
   # Output options
   columns_to_sort_output_by = c("padj", "pval"),
@@ -364,17 +356,13 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
       arrange(contrast, direction) %>%
       mutate(x_pos = row_number())
     
-    # Find the maximum bar height across all bars for uniform label positioning
-    max_bar_height <- max(bar_heights$total_count, na.rm = TRUE)
-    
     # Build annotation data only for bars that exist
-    # All labels positioned at the same level (max height)
     annotation_data <- bar_heights %>%
       mutate(
         label = ifelse(direction == "Negative NES", "DN", "UP"),
-        y_pos = max_bar_height  # Use uniform height for all labels
+        y = total_count  # Include count for position_stack
       ) %>%
-      select(contrast, direction, x_pos, y_pos, label)
+      select(contrast, direction, x_pos, y, label)
     
     # Match factor levels
     annotation_data$direction <- factor(
@@ -425,10 +413,11 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
         geom_vline(xintercept = separator_positions, linetype = "solid", 
                    color = "gray60", linewidth = 0.6)
       }} +
-      # Add UP/DN labels above bars (color-coded to match bars)
+      # Add UP/DN labels on top of stacked bars (color-coded to match bars)
       geom_text(
         data = annotation_data,
-        aes(x = x_pos, y = y_pos, label = label, color = direction),
+        aes(x = x_pos, y = y, label = label, color = direction),
+        position = position_stack(vjust = 1),
         vjust = -0.2,
         size = 3.5,
         fontface = "bold",
@@ -500,17 +489,13 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
       arrange(contrast, direction) %>%
       mutate(x_pos = row_number())
     
-    # Find the maximum bar height across all bars for uniform label positioning
-    max_bar_height <- max(bar_heights$total_count, na.rm = TRUE)
-    
     # Build annotation data only for bars that exist
-    # All labels positioned at the same level (max height)
     annotation_data <- bar_heights %>%
       mutate(
         label = ifelse(direction == "Negative NES", "DN", "UP"),
-        y_pos = max_bar_height  # Use uniform height for all labels
+        y = total_count  # Include count for position_stack
       ) %>%
-      select(contrast, direction, x_pos, y_pos, label)
+      select(contrast, direction, x_pos, y, label)
     
     # Match factor levels
     annotation_data$direction <- factor(
