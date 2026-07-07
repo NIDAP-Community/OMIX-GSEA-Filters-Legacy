@@ -231,19 +231,16 @@ cat("Creating filtering summary plot...\n")
 if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results) && 
     "contrast" %in% colnames(filtered_results)) {
   
-  # Check if filtering by direction (look at what's in the filtered results)
-  has_negative_after <- any(filtered_results$NES < 0)
-  has_positive_after <- any(filtered_results$NES > 0)
-  
-  # Count direction-specific pathways in BEFORE data to match filtering
-  if (has_negative_after && !has_positive_after) {
+  # Check the USER'S filtering parameter (not what ended up in results)
+  # to properly count direction-specific pathways
+  if (opt$enrichment_score_sign == "-") {
     # Negative only - count DN pathways before
     before_total <- length(unique(gsea_table$pathway[gsea_table$NES < 0]))
     after_total <- length(unique(filtered_results$pathway))
     retention_pct <- round(100 * after_total / before_total, 1)
     before_label <- paste0(before_total, "\nUnique DN\nPathways\nBefore")
     after_label <- paste0(after_total, "\nUnique DN\nPathways\nAfter\n(", retention_pct, "%)")
-  } else if (has_positive_after && !has_negative_after) {
+  } else if (opt$enrichment_score_sign == "+") {
     # Positive only - count UP pathways before
     before_total <- length(unique(gsea_table$pathway[gsea_table$NES > 0]))
     after_total <- length(unique(filtered_results$pathway))
@@ -314,37 +311,33 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
     # Get contrast order for annotations and separators
     contrast_levels <- unique(direction_data$contrast)
     
-    # Calculate vertical separator positions (between contrasts, at midpoints)
-    if (n_contrasts > 1) {
-      separator_positions <- seq(1.5, n_contrasts - 0.5, by = 1)
-    } else {
-      separator_positions <- numeric(0)
-    }
+    # Prepare UP/DN annotation data - only for bars that actually exist in the data
+    # Calculate the total height of each stacked bar (sum of all collections per contrast-direction)
+    bar_heights <- direction_data %>%
+      group_by(contrast, direction) %>%
+      summarise(total_count = sum(count), .groups = "drop")
     
-    # Prepare UP/DN annotation data - only for directions present in data
-    present_directions <- unique(direction_data$direction)
-    has_negative <- "Negative NES" %in% present_directions
-    has_positive <- "Positive NES" %in% present_directions
+    # Detect which directions exist in the actual data
+    has_negative <- any(bar_heights$direction == "Negative NES")
+    has_positive <- any(bar_heights$direction == "Positive NES")
     
-    # Build annotation data only for present directions
-    annotation_list <- list()
-    for (contrast in contrast_levels) {
-      if (has_negative) {
-        annotation_list[[length(annotation_list) + 1]] <- data.frame(
-          contrast = contrast,
-          label = "DN",
-          direction = "Negative NES"
-        )
-      }
-      if (has_positive) {
-        annotation_list[[length(annotation_list) + 1]] <- data.frame(
-          contrast = contrast,
-          label = "UP",
-          direction = "Positive NES"
-        )
-      }
-    }
-    annotation_data <- do.call(rbind, annotation_list)
+    # Create a mapping of contrast-direction to x-position based on actual data
+    # This handles cases where some contrasts might only have UP or only have DN
+    bar_heights <- bar_heights %>%
+      arrange(contrast, direction) %>%
+      mutate(x_pos = row_number())
+    
+    # Find the maximum bar height across all bars for uniform label positioning
+    max_bar_height <- max(bar_heights$total_count, na.rm = TRUE)
+    
+    # Build annotation data only for bars that exist
+    # All labels positioned at the same level (max height)
+    annotation_data <- bar_heights %>%
+      mutate(
+        label = ifelse(direction == "Negative NES", "DN", "UP"),
+        y_pos = max_bar_height  # Use uniform height for all labels
+      ) %>%
+      select(contrast, direction, x_pos, y_pos, label)
     
     # Match factor levels
     annotation_data$direction <- factor(
@@ -352,9 +345,31 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
       levels = c("Negative NES", "Positive NES")
     )
     
-    # Calculate y position for annotations (slightly above max count)
-    max_count <- max(direction_data$count, na.rm = TRUE)
-    annotation_y <- max_count * 1.05
+    # Recalculate separator positions based on actual bar layout
+    # Find positions where contrast changes
+    contrast_changes <- bar_heights %>%
+      mutate(
+        next_contrast = lead(contrast),
+        is_boundary = contrast != next_contrast & !is.na(next_contrast)
+      ) %>%
+      filter(is_boundary) %>%
+      mutate(sep_pos = x_pos + 0.5) %>%
+      pull(sep_pos)
+    
+    separator_positions <- contrast_changes
+    
+    # Calculate x-axis label positions (one per contrast, centered)
+    contrast_positions <- bar_heights %>%
+      group_by(contrast) %>%
+      summarise(
+        x_min = min(x_pos),
+        x_max = max(x_pos),
+        x_center = mean(c(x_min, x_max)),
+        .groups = "drop"
+      )
+    
+    contrast_label_positions <- contrast_positions$x_center
+    contrast_levels_ordered <- contrast_positions$contrast
     
     # Color palette for main collections (using a colorblind-friendly palette)
     collection_colors <- setNames(
@@ -362,8 +377,12 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
       sort(unique(direction_data$main_collection))
     )
     
-    p2 <- ggplot(direction_data, aes(x = contrast, y = count, fill = main_collection)) +
-      geom_col(aes(group = direction), position = position_dodge(width = 0.8), width = 0.35) +
+    p2 <- ggplot(direction_data, aes(x = interaction(contrast, direction), y = count, fill = main_collection)) +
+      geom_col(position = "stack", width = 0.7) +
+      scale_x_discrete(
+        breaks = contrast_label_positions,
+        labels = contrast_levels_ordered
+      ) +
       # Add vertical separator lines between contrast groups
       {if (length(separator_positions) > 0) {
         geom_vline(xintercept = separator_positions, linetype = "solid", 
@@ -372,9 +391,8 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
       # Add UP/DN labels above bars (color-coded to match bars)
       geom_text(
         data = annotation_data,
-        aes(x = contrast, y = annotation_y, label = label, color = direction, group = direction),
-        position = position_dodge(width = 0.8),
-        vjust = -0.5,
+        aes(x = x_pos, y = y_pos, label = label, color = direction),
+        vjust = -0.2,
         size = 3.5,
         fontface = "bold",
         inherit.aes = FALSE,
@@ -429,43 +447,65 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
     # Get contrast order for annotations and separators
     contrast_levels <- unique(direction_data$contrast)
     
-    # Calculate vertical separator positions (between contrasts, at midpoints)
-    if (n_contrasts > 1) {
-      separator_positions <- seq(1.5, n_contrasts - 0.5, by = 1)
-    } else {
-      separator_positions <- numeric(0)
-    }
+    # Prepare UP/DN annotation data - only for bars that actually exist in the data
+    # Calculate the total height of each stacked bar (sum of all collections per contrast-direction)
+    bar_heights <- direction_data %>%
+      group_by(contrast, direction) %>%
+      summarise(total_count = sum(count), .groups = "drop")
     
-    # Prepare UP/DN annotation data - only for directions present in data
-    present_directions <- unique(direction_data$direction)
-    has_negative <- "Negative NES" %in% present_directions
-    has_positive <- "Positive NES" %in% present_directions
+    # Detect which directions exist in the actual data
+    has_negative <- any(bar_heights$direction == "Negative NES")
+    has_positive <- any(bar_heights$direction == "Positive NES")
     
-    # Build annotation data only for present directions
-    annotation_list <- list()
-    for (contrast in contrast_levels) {
-      if (has_negative) {
-        annotation_list[[length(annotation_list) + 1]] <- data.frame(
-          contrast = contrast,
-          label = "DN",
-          direction = "Negative NES"
-        )
-      }
-      if (has_positive) {
-        annotation_list[[length(annotation_list) + 1]] <- data.frame(
-          contrast = contrast,
-          label = "UP",
-          direction = "Positive NES"
-        )
-      }
-    }
-    annotation_data <- do.call(rbind, annotation_list)
+    # Create a mapping of contrast-direction to x-position based on actual data
+    # This handles cases where some contrasts might only have UP or only have DN
+    bar_heights <- bar_heights %>%
+      arrange(contrast, direction) %>%
+      mutate(x_pos = row_number())
+    
+    # Find the maximum bar height across all bars for uniform label positioning
+    max_bar_height <- max(bar_heights$total_count, na.rm = TRUE)
+    
+    # Build annotation data only for bars that exist
+    # All labels positioned at the same level (max height)
+    annotation_data <- bar_heights %>%
+      mutate(
+        label = ifelse(direction == "Negative NES", "DN", "UP"),
+        y_pos = max_bar_height  # Use uniform height for all labels
+      ) %>%
+      select(contrast, direction, x_pos, y_pos, label)
     
     # Match factor levels
     annotation_data$direction <- factor(
       annotation_data$direction, 
       levels = c("Negative NES", "Positive NES")
     )
+    
+    # Recalculate separator positions based on actual bar layout
+    # Find positions where contrast changes
+    contrast_changes <- bar_heights %>%
+      mutate(
+        next_contrast = lead(contrast),
+        is_boundary = contrast != next_contrast & !is.na(next_contrast)
+      ) %>%
+      filter(is_boundary) %>%
+      mutate(sep_pos = x_pos + 0.5) %>%
+      pull(sep_pos)
+    
+    separator_positions <- contrast_changes
+    
+    # Calculate x-axis label positions (one per contrast, centered)
+    contrast_positions <- bar_heights %>%
+      group_by(contrast) %>%
+      summarise(
+        x_min = min(x_pos),
+        x_max = max(x_pos),
+        x_center = mean(c(x_min, x_max)),
+        .groups = "drop"
+      )
+    
+    contrast_label_positions <- contrast_positions$x_center
+    contrast_levels_ordered <- contrast_positions$contrast
     
     # Calculate y position for annotations (slightly above max count)
     max_count <- max(direction_data$count, na.rm = TRUE)
@@ -542,146 +582,7 @@ if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results)
 }
 
 
-# Print comprehensive filtering summary
-cat("\n")
-cat("=====================================================\n")
-cat("           FILTERING SUMMARY                        \n")
-cat("=====================================================\n")
-
-# Criteria Applied
-cat("\nCriteria Applied:\n")
-criteria_list <- c()
-if (!is.null(opt$p_value_filter) && opt$p_value_filter != "none") {
-  # Normalize p-value filter name for display
-  p_filter_lower <- tolower(opt$p_value_filter)
-  if (grepl("adjusted", p_filter_lower) || grepl("padj", p_filter_lower) || grepl("fdr", p_filter_lower)) {
-    p_label <- "Adjusted p-value"
-    is_adjusted <- TRUE
-  } else {
-    p_label <- "P-value"
-    is_adjusted <- FALSE
-  }
-  
-  criteria_list <- c(criteria_list, paste0("  • ", p_label, " < ", opt$p_value_threshold))
-  
-  # If filtering by adjusted p-value, show FDR correction mode from data
-  if (is_adjusted && "fdr_correction_mode" %in% colnames(gsea_table)) {
-    fdr_modes <- unique(gsea_table$fdr_correction_mode)
-    fdr_modes <- fdr_modes[!is.na(fdr_modes) & fdr_modes != ""]
-    if (length(fdr_modes) > 0) {
-      criteria_list <- c(criteria_list, paste0("    (FDR mode: ", paste(fdr_modes, collapse = ", "), ")"))
-    }
-  }
-}
-if (!is.null(opt$enrichment_score_filter) && opt$enrichment_score_filter != "none") {
-  score_label <- toupper(opt$enrichment_score_filter)
-  if (opt$enrichment_score_sign == "absolute") {
-    criteria_list <- c(criteria_list, paste0("  • |", score_label, "| > ", opt$enrichment_score_threshold))
-  } else if (opt$enrichment_score_sign == "positive") {
-    criteria_list <- c(criteria_list, paste0("  • ", score_label, " > ", opt$enrichment_score_threshold))
-  } else if (opt$enrichment_score_sign == "negative") {
-    criteria_list <- c(criteria_list, paste0("  • ", score_label, " < -", opt$enrichment_score_threshold))
-  }
-}
-if (!is.null(opt$size_filter) && (isTRUE(opt$size_filter) || opt$size_filter == "TRUE" || opt$size_filter == TRUE)) {
-  criteria_list <- c(criteria_list, paste0("  • Gene set size >= ", opt$size_cutoff))
-}
-if (!is.null(opt$top_rank_filter) && (isTRUE(opt$top_rank_filter) || opt$top_rank_filter == "TRUE" || opt$top_rank_filter == TRUE)) {
-  criteria_list <- c(criteria_list, "  • Top rank filtering enabled")
-}
-if (!is.null(collections_vec) && length(collections_vec) > 0) {
-  criteria_list <- c(criteria_list, paste0("  • Collections: ", paste(collections_vec, collapse = ", ")))
-}
-if (!is.null(pathways_vec) && length(pathways_vec) > 0) {
-  criteria_list <- c(criteria_list, paste0("  • Pathways: ", paste(pathways_vec, collapse = ", ")))
-}
-if (!is.null(genes_vec) && length(genes_vec) > 0) {
-  criteria_list <- c(criteria_list, paste0("  • Genes: ", paste(genes_vec, collapse = ", ")))
-}
-if (!is.null(contrasts_vec) && length(contrasts_vec) > 0) {
-  if (!is.null(opt$contrast_filter) && opt$contrast_filter == "include") {
-    criteria_list <- c(criteria_list, paste0("  • Include contrasts: ", paste(contrasts_vec, collapse = ", ")))
-  } else {
-    criteria_list <- c(criteria_list, paste0("  • Exclude contrasts: ", paste(contrasts_vec, collapse = ", ")))
-  }
-}
-
-if (length(criteria_list) == 0) {
-  cat("  • No filters applied (all pathways retained)\n")
-} else {
-  cat(paste(criteria_list, collapse = "\n"), "\n")
-}
-
-# Overall Results
-cat("\nOverall Results:\n")
-if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(gsea_table)) {
-  # Check if filtering by direction (look at what's in the filtered results)
-  has_negative_after <- any(filtered_results$NES < 0)
-  has_positive_after <- any(filtered_results$NES > 0)
-  
-  # Count direction-specific pathways to match filtering
-  if (has_negative_after && !has_positive_after) {
-    # Negative only - count DN pathways before
-    before_unique <- length(unique(gsea_table$pathway[gsea_table$NES < 0]))
-    after_unique <- length(unique(filtered_results$pathway))
-    unique_retention <- round(100 * after_unique / before_unique, 1)
-    cat(sprintf("  • Unique DN pathways: %d → %d (%.1f%% retained)\n", 
-                before_unique, after_unique, unique_retention))
-  } else if (has_positive_after && !has_negative_after) {
-    # Positive only - count UP pathways before
-    before_unique <- length(unique(gsea_table$pathway[gsea_table$NES > 0]))
-    after_unique <- length(unique(filtered_results$pathway))
-    unique_retention <- round(100 * after_unique / before_unique, 1)
-    cat(sprintf("  • Unique UP pathways: %d → %d (%.1f%% retained)\n", 
-                before_unique, after_unique, unique_retention))
-  } else {
-    # Both directions - count all pathways
-    before_unique <- length(unique(gsea_table$pathway))
-    after_unique <- length(unique(filtered_results$pathway))
-    unique_retention <- round(100 * after_unique / before_unique, 1)
-    cat(sprintf("  • Unique pathways: %d → %d (%.1f%% retained)\n", 
-                before_unique, after_unique, unique_retention))
-  }
-}
-before_rows <- nrow(gsea_table)
-after_rows <- nrow(filtered_results)
-row_retention <- round(100 * after_rows / before_rows, 1)
-cat(sprintf("  • Pathway-contrast pairs: %d → %d (%.1f%% retained)\n", 
-            before_rows, after_rows, row_retention))
-
-# By Contrast
-if ("contrast" %in% colnames(gsea_table) && length(unique(gsea_table$contrast)) > 1) {
-  cat("\nBy Contrast:\n")
-  contrast_summary <- gsea_table %>%
-    group_by(contrast) %>%
-    summarise(before = n(), .groups = "drop") %>%
-    left_join(
-      filtered_results %>% 
-        group_by(contrast) %>% 
-        summarise(after = n(), .groups = "drop"),
-      by = "contrast"
-    ) %>%
-    mutate(
-      after = ifelse(is.na(after), 0, after),
-      pct = round(100 * after / before, 1)
-    )
-  
-  for (i in 1:nrow(contrast_summary)) {
-    cat(sprintf("  • %-20s: %4d → %4d (%.1f%%)\n",
-                contrast_summary$contrast[i],
-                contrast_summary$before[i],
-                contrast_summary$after[i],
-                contrast_summary$pct[i]))
-  }
-}
-
-# Output Files
-cat("\nOutput Files:\n")
-cat("  • filtered_gsea_results.csv\n")
-cat("  • filtering_summary.png\n")
-cat("  • enrichment_direction.png\n")
-
-cat("\n=====================================================\n\n")
+# Filtering summary removed - all information is in the filtering_summary.png visualization
 
 # Save filtered results
 cat("=== Saving Results ===\n")
