@@ -2,13 +2,85 @@
 set -euo pipefail
 
 # GSEA Filter Run Script
-# Accepts named parameters from App Panel or command line
+# Handles both named (--param_name value) and positional (value1 value2...) parameters
 
 echo "=== Running GSEA Filter ==="
 echo ""
 
-# Forward all arguments to main.R (App Panel passes as named flags)
-Rscript main.R "$@"
+# Define parameter names in order (matching App Panel definition order)
+param_names=(
+  "input_file"
+  "p_value_filter"
+  "p_value_threshold"
+  "enrichment_score_filter"
+  "enrichment_score_threshold"
+  "enrichment_score_sign"
+  "size_filter"
+  "size_cutoff"
+  "top_rank_filter"
+  "collections_to_include"
+  "pathways_to_include"
+  "gene_filter_universe"
+  "genes_to_include"
+  "contrast_filter"
+  "contrasts"
+  "sort_decreasing"
+)
+
+# Check if arguments are named (start with --) or positional
+if [[ $# -gt 0 ]] && [[ "$1" == --* ]]; then
+  # Named parameters mode - filter out empty values
+  filtered_args=()
+  i=1
+  while [[ $i -le $# ]]; do
+    arg="${!i}"
+    
+    # If this is a flag followed by an empty value, skip both
+    if [[ "$arg" == --* ]]; then
+      next_i=$((i + 1))
+      if [[ $next_i -le $# ]]; then
+        next_arg="${!next_i}"
+        if [[ -z "$next_arg" ]]; then
+          # Skip flag and empty value
+          i=$((i + 2))
+          continue
+        fi
+      fi
+    fi
+    
+    # Keep this argument
+    filtered_args+=("$arg")
+    i=$((i + 1))
+  done
+  
+  # Forward filtered named arguments to main.R
+  if [[ ${#filtered_args[@]} -gt 0 ]]; then
+    Rscript main.R "${filtered_args[@]}"
+  else
+    Rscript main.R
+  fi
+else
+  # Positional parameters mode - convert to named flags
+  # Skip empty values for optional parameters
+  rscript_args=()
+  for i in "${!param_names[@]}"; do
+    param_num=$((i + 1))
+    if [[ $param_num -le $# ]]; then
+      value="${!param_num}"
+      # Only add non-empty values
+      if [[ -n "$value" ]]; then
+        rscript_args+=("--${param_names[$i]}" "$value")
+      fi
+    fi
+  done
+  
+  # Forward converted named arguments to main.R
+  if [[ ${#rscript_args[@]} -gt 0 ]]; then
+    Rscript main.R "${rscript_args[@]}"
+  else
+    Rscript main.R
+  fi
+fi
 
 echo ""
 echo "=== Run Complete ==="
