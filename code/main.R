@@ -178,6 +178,43 @@ if (!is.null(contrasts_vec)) cat("Contrasts:", paste(contrasts_vec, collapse = "
 # Apply filters using the GSEA_Filters function
 cat("\n=== Applying GSEA Filters ===\n")
 
+# First, apply QC filters only to get baseline for "before" count in visualization
+qc_filtered_results <- GSEA_Filters(
+  gsea_table = gsea_table,
+  
+  # P-value filtering
+  p_value_filter = opt$p_value_filter,
+  p_value_threshold = opt$p_value_threshold,
+  
+  # Enrichment score filtering
+  enrichment_score_filter = opt$enrichment_score_filter,
+  enrichment_score_threshold = opt$enrichment_score_threshold,
+  enrichment_score_sign = opt$enrichment_score_sign,
+  
+  # Size filtering
+  size_filter = opt$size_filter,
+  size_cutoff = opt$size_cutoff,
+  
+  # Skip selection filters for baseline
+  top_rank_filter = "all",
+  collections_to_include = NULL,
+  pathways_to_include = NULL,
+  genes_to_include = NULL,
+  contrast_filter = "none",
+  contrasts = NULL,
+  
+  # Plotting options
+  bubble_color_variable = opt$bubble_color_variable,
+  
+  # Output options (don't sort for intermediate)
+  columns_to_sort_output_by = c("padj", "pval"),
+  sort_output_in_decreasing_order = FALSE,
+  
+  # Suppress warnings for intermediate step
+  display_warnings = -1
+)
+
+# Now apply all filters including selection filters for final results
 filtered_results <- GSEA_Filters(
   gsea_table = gsea_table,
   
@@ -228,28 +265,28 @@ cat("\n=== Generating Summary Visualization ===\n")
 cat("Creating filtering summary plot...\n")
 
 # Check if we have the required columns
-if ("pathway" %in% colnames(gsea_table) && "NES" %in% colnames(filtered_results) && 
+if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered_results) && 
     "contrast" %in% colnames(filtered_results)) {
   
-  # Check the USER'S filtering parameter (not what ended up in results)
-  # to properly count direction-specific pathways
+  # Check the USER'S filtering parameter for direction-specific counting
+  # Use qc_filtered_results (after QC filters but before selection filters) for "before"
   if (opt$enrichment_score_sign == "-") {
-    # Negative only - count DN pathways before
-    before_total <- length(unique(gsea_table$pathway[gsea_table$NES < 0]))
+    # Negative only - count DN pathways after QC filters
+    before_total <- length(unique(qc_filtered_results$pathway[qc_filtered_results$NES < 0]))
     after_total <- length(unique(filtered_results$pathway))
     retention_pct <- round(100 * after_total / before_total, 1)
     before_label <- paste0(before_total, "\nUnique DN\nPathways\nBefore")
     after_label <- paste0(after_total, "\nUnique DN\nPathways\nAfter\n(", retention_pct, "%)")
   } else if (opt$enrichment_score_sign == "+") {
-    # Positive only - count UP pathways before
-    before_total <- length(unique(gsea_table$pathway[gsea_table$NES > 0]))
+    # Positive only - count UP pathways after QC filters
+    before_total <- length(unique(qc_filtered_results$pathway[qc_filtered_results$NES > 0]))
     after_total <- length(unique(filtered_results$pathway))
     retention_pct <- round(100 * after_total / before_total, 1)
     before_label <- paste0(before_total, "\nUnique UP\nPathways\nBefore")
     after_label <- paste0(after_total, "\nUnique UP\nPathways\nAfter\n(", retention_pct, "%)")
   } else {
-    # Both directions - count all pathways (no DN/UP breakdown since pathways can be both across contrasts)
-    before_total <- length(unique(gsea_table$pathway))
+    # Both directions - count all pathways after QC filters
+    before_total <- length(unique(qc_filtered_results$pathway))
     after_total <- length(unique(filtered_results$pathway))
     retention_pct <- round(100 * after_total / before_total, 1)
     before_label <- paste0(before_total, "\nUnique\nPathways\nBefore")
