@@ -784,12 +784,15 @@ cols_to_hide <- c("geneScore", "fdr_correction_mode", "nMoreExtreme", "size",
 all_col_names <- colnames(display_table)
 hidden_col_indices <- which(all_col_names %in% cols_to_hide) - 1
 
-# Define columns that should have filters
-# Character columns (text filters)
-char_filter_cols <- c("contrast", "collection", "main_collection", "pathway")
-# Numeric columns (range filters)
+# Define columns that should have filters (including hidden columns)
+# Character columns (text filters with autocomplete - searchable gene lists)
+char_filter_cols <- c("contrast", "collection", "main_collection", "pathway", 
+                     "leadingEdge", "inPathway", "leadingEdge_orthologs", "inPathway_orthologs",
+                     "species", "pathways_database", "fdr_correction_mode")
+# Numeric columns (range filters with Min/Max boxes)
 num_filter_cols <- c("pval", "padj", "ES", "NES", "size", "fractionLeadingEdge", 
-                     "size_leadingEdge", "fraction_leadingEdge")
+                     "size_leadingEdge", "fraction_leadingEdge", 
+                     "geneScore", "nMoreExtreme")
 
 # Get column names that exist in the table
 char_filter_cols_present <- intersect(char_filter_cols, all_col_names)

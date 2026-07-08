@@ -164,15 +164,10 @@ GSEA_Filters <- function(
         if (!any(collections_to_include %in% gsea_table[, "collection"])) {
             stop(sprintf(
                 paste0(
-                    "ERROR:\n\nRequested 'Collections to Include' are ",
-                    "not found in the input  GSEA Table.\n",
-                    "Check if the collections were selected to run with ",
-                    "the GSEA Preranked [CCBR]or if the collections full ",
-                    "names (case sensitive) were typed correctly ",
-                    "(relevant only to adding a custom pathway name to the ",
-                    "dropdown list with the 'Create option' ",
-                    "functionality). \n\nNot found collections are:\n%s\n\n",
-                    "Available collections are:\n%s"
+                    "ERROR:\n\n",
+                    "Requested 'Collections to Include' are not found in the input GSEA Table.\n\n",
+                    "Not found collections:\n%s\n\n",
+                    "Available collections:\n%s"
                 ),
                 paste(missing_collections, collapse = "\n"),
                 paste(available_collections, collapse = "\n")
@@ -210,31 +205,19 @@ GSEA_Filters <- function(
         if (!any(pathways_to_include %in% gsea_table[, "pathway"])) {
             stop(sprintf(
                 paste0(
-                    "ERROR:\n\nRequested 'Pathways to Include' are not ",
-                    "found in the input  GSEA Table.\n",
-                    "Check if the collections to which these requested ",
-                    "pathways belong to were selected to run with the ",
-                    "GSEA Preranked [CCBR] or if the pathways full names ",
-                    "(case sensitive) were typed correctly (relevant only ",
-                    "to adding a custom pathway name to the dropdown list ",
-                    "with the 'Create option' functionality). ",
-                    "\n\nNot found pathways are:\n%s\n\n"
+                    "ERROR:\n\n",
+                    "Requested 'Pathways to Include' are not found in the input GSEA Table.\n\n",
+                    "Not found pathways:\n%s\n\n"
                 ),
                 paste(missing_pathways, collapse = "\n")
             ))
         } else if (!all(pathways_to_include %in% gsea_table[, "pathway"])) {
             stop(sprintf(
                 paste0(
-                    "ERROR:\n\nSome of the requested 'Pathways to Include' ",
-                    "are not found in the input  GSEA Table.\n",
-                    "Check if the collections to which these requested ",
-                    "pathways belong to were selected to run with the ",
-                    "GSEA Preranked [CCBR] or if the pathways full names ",
-                    "(case sensitive) were typed correctly (relevant only ",
-                    "to adding a custom pathway name to the dropdown list ",
-                    "with the 'Create option' functionality). ",
-                    "\n\nNot found pathways are:\n%s\n\n",
-                    "Found pathways are:\n%s\n\n"
+                    "ERROR:\n\n",
+                    "Some of the requested 'Pathways to Include' are not found in the input GSEA Table.\n\n",
+                    "Not found pathways:\n%s\n\n",
+                    "Found pathways:\n%s\n\n"
                 ),
                 paste(missing_pathways, collapse = "\n"),
                 paste(found_pathways, collapse = "\n")
@@ -517,31 +500,19 @@ GSEA_Filters <- function(
         if (!any(genes_to_include %in% available_genes)) {
             stop(sprintf(
                 paste0(
-                    "ERROR:\n\nRequested 'Genes to Include' are not found ",
-                    "in the input  GSEA Table.\n",
-                    "Check if the collections and pathways to which these ",
-                    "requested genes belong to were selected to run with ",
-                    "the GSEA Preranked [CCBR] or if the genes full names ",
-                    "(case sensitive) were typed correctly (relevant only ",
-                    "to adding a gene name to the dropdown list with the ",
-                    "'Create option' functionality). ",
-                    "\n\nNot found genes are:\n%s\n\n"
+                    "ERROR:\n\n",
+                    "Requested 'Genes to Include' are not found in the input GSEA Table.\n\n",
+                    "Not found genes:\n%s\n\n"
                 ),
                 paste(missing_genes, collapse = "\n")
             ))
         } else if (!all(genes_to_include %in% available_genes)) {
             stop(sprintf(
                 paste0(
-                    "ERROR:\n\nSome of the requested 'Genes to Include' ",
-                    "are not found in the input  GSEA Table.\n",
-                    "Check if the collections and pathways to which these ",
-                    "requested genes belong to were selected to run with ",
-                    "the GSEA Preranked [CCBR] or if the genes full names ",
-                    "(case sensitive) were typed correctly (relevant only ",
-                    "to adding a gene name to the dropdown list with the ",
-                    "'Create option' functionality). ",
-                    "\n\nNot found genes are:\n%s\n\n",
-                    "Found genes are:\n%s\n\n"
+                    "ERROR:\n\n",
+                    "Some of the requested 'Genes to Include' are not found in the input GSEA Table.\n\n",
+                    "Not found genes:\n%s\n\n",
+                    "Found genes:\n%s\n\n"
                 ),
                 paste(missing_genes, collapse = "\n"),
                 paste(found_genes, collapse = "\n")

@@ -4,13 +4,66 @@ Filter GSEA table formatted output from Omix GSEA based on multiple criteria inc
 
 ## Input
 
-- **GSEA Results Table**: CSV or RDS file from OMIX GSEA output
-  - **Option 1**: Upload a CSV file directly via the App Panel ("Upload GSEA Results File" parameter)
-  - **Option 2**: Attach a data asset containing `gsea_results.csv` or `gsea_results.rds`
-  - Required columns: `contrast`, `collection`, `pathway`, `pval`, `padj`, `ES`, `NES`, `size`, `leadingEdge`, etc.
-  - RDS files must contain a data frame with the same structure
-  
+### GSEA Results Table
+
+CSV or RDS file from OMIX GSEA output.
+
+**File options:**
+- **Option 1**: Upload a CSV file directly via the App Panel ("Upload GSEA Results File" parameter)
+- **Option 2**: Attach a data asset containing `gsea_results.csv` or `gsea_results.rds`
+- RDS files must contain a data frame with the same structure as the CSV
+
 **Priority**: If you upload a file via the App Panel, it takes priority over any attached data assets.
+
+### Required Columns
+
+The following columns **must** be present in the input file:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `contrast` | character | Experimental contrast name (e.g., "Treatment_1-Control") |
+| `geneScore` | character | Gene score type used (e.g., "_tstat", "_log2fc") |
+| `fdr_correction_mode` | character | FDR correction method (e.g., "within each collection") |
+| `pathways_database` | character | Database source (e.g., "MSigDB_2023.2.Hs") |
+| `collection` | character | Pathway collection (e.g., "C2:CP:REACTOME: Reactome gene sets") |
+| `pathway` | character | Pathway name (e.g., "REACTOME_CELL_CYCLE_MITOTIC") |
+| `pval` | numeric | Raw p-value from GSEA |
+| `padj` | numeric | Adjusted p-value (FDR) |
+| `ES` | numeric | Enrichment Score (raw) |
+| `NES` | numeric | Normalized Enrichment Score |
+| `nMoreExtreme` | integer | Number of permutations more extreme than observed |
+| `size` | integer | Total genes in pathway |
+| `leadingEdge` | character | Comma-separated gene symbols in leading edge |
+| `size_leadingEdge` | integer | Number of genes in leading edge |
+| `fraction_leadingEdge` | numeric | Fraction of pathway genes in leading edge |
+| `inPathway` | character | Comma-separated gene symbols in entire pathway |
+| `species` | character | Species (e.g., "Mouse", "Human") |
+
+### Optional Columns
+
+These columns are optional:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `leadingEdge_orthologs` | character | Human orthologs of leading edge genes |
+| `inPathway_orthologs` | character | Human orthologs of pathway genes |
+
+### Output Columns
+
+The filtered output includes all input columns plus one additional derived column:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `main_collection` | character | Top-level collection prefix extracted from `collection` (e.g., "C2" from "C2:CP:REACTOME") |
+
+**Column order in outputs**: `contrast`, `geneScore`, `fdr_correction_mode`, `pathways_database`, `main_collection`, `collection`, `pathway`, `pval`, `padj`, `ES`, `NES`, `nMoreExtreme`, `size`, `leadingEdge`, `size_leadingEdge`, `fraction_leadingEdge`, `inPathway`, `species`, `leadingEdge_orthologs`, `inPathway_orthologs`
+
+### Example Input Row
+
+```
+contrast,geneScore,fdr_correction_mode,pathways_database,collection,pathway,pval,padj,ES,NES,nMoreExtreme,size,leadingEdge,size_leadingEdge,fraction_leadingEdge,inPathway,species,leadingEdge_orthologs,inPathway_orthologs
+"B-A","_tstat","within each collection","MSigDB_2023.2.Hs","C2:CP:REACTOME: Reactome gene sets","REACTOME_CELL_CYCLE_MITOTIC",0.000365898,0.0106373,-0.387934,-1.871296,0,560,"Myc,Mcm6,Gorasp1,...",145,0.258929,"Aaas,Abl1,Actr1a,...","Mouse","MYC,MCM6,GORASP1,...","AAAS,ABL1,ACTR1A,..."
+```
 
 ## Output
 
