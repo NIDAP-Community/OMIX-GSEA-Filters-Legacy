@@ -18,6 +18,10 @@ Filter GSEA table formatted output from Omix GSEA based on multiple criteria inc
   - `filtered_gsea_results.csv` - Human-readable CSV format
   - `filtered_gsea_results.rds` - R native format (preserves data types, faster loading in R)
   - `filtered_gsea_results_table.html` - **Interactive HTML table** with:
+    - **Clickable MSigDB pathway links**: Pathway names link directly to the Molecular Signatures Database
+      - Automatic species detection (human vs mouse MSigDB)
+      - Links open in new browser tab to preserve your work
+      - Only verified MSigDB pathways are linked; custom pathways display as plain text
     - Formatted numbers: p-values in scientific notation, scores/fractions rounded
     - Sortable columns (click headers)
     - Copy button for quick data export
@@ -37,6 +41,10 @@ Filter GSEA table formatted output from Omix GSEA based on multiple criteria inc
 
 1. Click `filtered_gsea_results_table.html` in results panel to open in browser
 2. **Key features:**
+   - **MSigDB pathway links**: Click any pathway name to view detailed information in the Molecular Signatures Database
+     - Automatically detects species (human vs mouse) based on collection names
+     - Opens in new tab to keep your results visible
+     - Only verified MSigDB pathways are linked; custom pathways appear as plain text
    - **Copy button**: Click to copy all visible data to clipboard (teal button)
    - **Show/Hide Columns**: Toggle column visibility - technical columns (size, geneScore, leadingEdge, etc.) are hidden by default
    - **Rows per page**: Choose 5, 10, 25, 50, 100, or All rows to display (default: 5)
@@ -45,6 +53,7 @@ Filter GSEA table formatted output from Omix GSEA based on multiple criteria inc
      - P-values shown in scientific notation (e.g., 1.23e-05)
      - Scores and fractions rounded to 2 decimals
      - Pathway names with underscores replaced by spaces and wrapped for readability
+     - Gene lists formatted with comma+space for better readability
 3. **Hidden by default** (use Show/Hide Columns to reveal):
    - Technical: `geneScore`, `fdr_correction_mode`, `nMoreExtreme`, `size`
    - Gene lists: `leadingEdge`, `inPathway`, `leadingEdge_orthologs`, `inPathway_orthologs`

@@ -6,7 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## [2.1.0] - 2026-07-08
+## [3.0.0] - 2026-07-08
+
+### Added
+- **Pathway links to MSigDB**: Pathway names are now clickable links to MSigDB database
+  - Automatic species detection: Collections starting with `M` (MH, MC2, etc.) link to mouse MSigDB, others to human
+  - Links open in new tab to preserve your work
+  - **Smart link detection**: Only creates links for confirmed MSigDB pathways (H, C1-C8, MH, MC1-MC8)
+    - Custom pathways display as plain text to prevent broken links
+    - Uses `pathways_database` column if available, otherwise validates collection patterns
+- **Gene column formatting**: Leading edge and pathway gene lists now display with improved readability
+  - Comma → comma+space formatting (`GENE1, GENE2` instead of `GENE1,GENE2`)
+  - Left-aligned with text wrapping (matching pathway column style)
+  - Wider column width (350px) for better gene list display
+  - Applies to: `leadingEdge`, `inPathway`, `leadingEdge_orthologs`, `inPathway_orthologs`
+
+## [2.0.0] - 2026-07-08
 
 ### Added
 - **Pathway links to MSigDB**: Pathway names are now clickable links to MSigDB database
