@@ -1,4 +1,4 @@
-# hash:sha256:9ff0eccc9077180d87a225729dd845ad8bba90d9f76342bad0f0e538f5443baf
+# hash:sha256:ce1882f58426497c7b638f61b8e26c5d3285c55be3bc4678e8ae66e46807c4b8
 ARG REGISTRY_HOST
 FROM $REGISTRY_HOST/codeocean/mosuite:v0.3.2
 
@@ -8,9 +8,9 @@ COPY git-ask-pass /
 
 ARG RCACHE_OPTIONS
 RUN echo $RCACHE_OPTIONS >> $(Rscript -e 'cat(R.home())')/etc/Rprofile.site
-RUN Rscript -e 'remotes::install_version("DT")' \
-    && Rscript -e 'remotes::install_version("RColorBrewer")' \
-    && Rscript -e 'remotes::install_version("htmlwidgets")' \
-    && Rscript -e 'remotes::install_version("optparse")' \
-    && Rscript -e 'remotes::install_version("patchwork")' \
-    && Rscript -e 'remotes::install_version("plotly")'
+RUN Rscript -e 'remotes::install_version("DT", "0.34.0")' \
+    && Rscript -e 'remotes::install_version("RColorBrewer", "1.1-3")' \
+    && Rscript -e 'remotes::install_version("htmlwidgets", "1.6.4")' \
+    && Rscript -e 'remotes::install_version("optparse", "1.8.2")' \
+    && Rscript -e 'remotes::install_version("patchwork", "1.3.2")' \
+    && Rscript -e 'remotes::install_version("plotly", "4.12.0")'

@@ -646,22 +646,64 @@ output_file_html <- sub("\\.csv$", "_table.html", output_file)
 display_results <- filtered_results %>%
   mutate(across(where(is.numeric), ~round(., 4)))
 
+# Identify gene list columns to hide by default
+gene_list_cols <- c("leadingEdge", "inPathway", "leadingEdge_orthologs", "inPathway_orthologs")
+existing_gene_cols <- intersect(gene_list_cols, colnames(display_results))
+
+# Get column indices for gene list columns (DT uses 0-based indexing)
+if (length(existing_gene_cols) > 0) {
+  gene_col_indices <- which(colnames(display_results) %in% existing_gene_cols) - 1
+} else {
+  gene_col_indices <- c()
+}
+
+# Create toggle buttons for each gene list column
+toggle_buttons <- list()
+if (length(existing_gene_cols) > 0) {
+  for (col_name in existing_gene_cols) {
+    col_idx <- which(colnames(display_results) == col_name) - 1
+    button_label <- gsub("_", " ", col_name)
+    button_label <- tools::toTitleCase(button_label)
+    
+    toggle_buttons[[length(toggle_buttons) + 1]] <- list(
+      extend = 'colvis',
+      text = paste0('Toggle ', button_label),
+      columns = col_idx,
+      action = htmlwidgets::JS(sprintf(
+        "function(e, dt, node, config) {
+          var col = dt.column(%d);
+          col.visible(!col.visible());
+          $(node).toggleClass('active', col.visible());
+        }", col_idx
+      ))
+    )
+  }
+}
+
+# Build buttons list (standard export buttons + toggle buttons)
+all_buttons <- c(
+  list('copy', 'csv', 'excel'),
+  toggle_buttons
+)
+
 # Create interactive datatable with enhanced features
 dt <- datatable(
   display_results,
   extensions = c('Buttons', 'FixedHeader', 'Scroller'),
   options = list(
-    dom = 'Bfrtip',
-    buttons = c('copy', 'csv', 'excel'),
+    dom = 'Blfrtip',  # Added 'l' for length menu (rows per page selector)
+    buttons = all_buttons,
     fixedHeader = TRUE,
     scrollX = TRUE,
     scrollY = '600px',
     scroller = TRUE,
-    pageLength = 50,
-    lengthMenu = c(10, 25, 50, 100, 500),
+    pageLength = 5,  # Start with 5 rows displayed
+    lengthMenu = c(5, 10, 25, 50, 100),  # Include 5 as first option
     searchHighlight = TRUE,
     columnDefs = list(
-      list(className = 'dt-center', targets = "_all")
+      list(className = 'dt-center', targets = "_all"),
+      # Hide gene list columns by default
+      list(visible = FALSE, targets = gene_col_indices)
     )
   ),
   filter = 'top',
@@ -672,6 +714,23 @@ dt <- datatable(
   )
 )
 
+# Add custom CSS for active button styling
+dt <- dt %>%
+  htmlwidgets::prependContent(
+    htmltools::tags$style(
+      htmltools::HTML("
+        .dt-button.active {
+          background-color: #4CAF50 !important;
+          color: white !important;
+          border: 2px solid #2e7d32 !important;
+        }
+        .dt-buttons {
+          margin-bottom: 10px;
+        }
+      ")
+    )
+  )
+
 # Save as self-contained HTML
 htmlwidgets::saveWidget(
   dt, 
@@ -681,5 +740,9 @@ htmlwidgets::saveWidget(
 )
 
 cat(sprintf("Interactive HTML table saved to: %s\n", output_file_html))
+if (length(existing_gene_cols) > 0) {
+  cat(sprintf("Gene list columns (%s) are hidden by default.\n", paste(existing_gene_cols, collapse = ", ")))
+  cat("Use the toggle buttons above the table to show/hide each column.\n")
+}
 
 cat("\n=== GSEA Filter Complete ===\n")
