@@ -673,12 +673,87 @@ if ("fraction" %in% names(display_results)) {
 if ("fraction_leadingEdge" %in% names(display_results)) {
   display_results$fraction_leadingEdge <- formatC(display_results$fraction_leadingEdge, format = "f", digits = 2)
 }
-if ("pathway" %in% names(display_results)) {
+
+# Create pathway links to MSigDB (species-aware based on collection)
+# Only create links for confirmed MSigDB pathways, not custom pathways
+if ("pathway" %in% names(display_results) && "collection" %in% names(display_results)) {
+  # Define known MSigDB collection patterns (human and mouse)
+  msigdb_collections <- c("H", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8",
+                          "MH", "MC1", "MC2", "MC3", "MC4", "MC5", "MC6", "MC7", "MC8")
+  
+  # Extract main collection prefix (e.g., "C5:BP:..." -> "C5")
+  display_results <- display_results %>%
+    mutate(
+      main_collection_prefix = str_extract(collection, "^[^:]+"),
+      is_msigdb = FALSE
+    )
+  
+  # Check if pathway is from MSigDB using available information
+  if ("pathways_database" %in% names(display_results)) {
+    # Primary check: use pathways_database column if available
+    display_results <- display_results %>%
+      mutate(is_msigdb = grepl("MSigDB", pathways_database, ignore.case = TRUE))
+  } else {
+    # Fallback: check if collection matches known MSigDB patterns
+    display_results <- display_results %>%
+      mutate(is_msigdb = main_collection_prefix %in% msigdb_collections)
+  }
+  
+  # Create links only for MSigDB pathways
+  display_results <- display_results %>%
+    mutate(
+      msigdb_species = ifelse(grepl("^M", collection), "mouse", "human"),
+      pathway_display = gsub("_", " ", pathway),
+      pathway_url = ifelse(
+        is_msigdb,
+        paste0(
+          "https://www.gsea-msigdb.org/gsea/msigdb/",
+          msigdb_species,
+          "/geneset/",
+          pathway
+        ),
+        NA_character_
+      ),
+      pathway_link = ifelse(
+        is_msigdb & !is.na(pathway_url),
+        paste0('<a href="', pathway_url, '" target="_blank">', pathway_display, '</a>'),
+        pathway_display
+      )
+    ) %>%
+    select(-msigdb_species, -pathway_display, -pathway_url, -main_collection_prefix, -is_msigdb)
+} else if ("pathway" %in% names(display_results)) {
+  # Fallback if no collection column: just replace underscores
   display_results$pathway <- gsub("_", " ", display_results$pathway)
+}
+
+# Format gene-listing columns: comma → comma+space for better readability
+gene_cols <- c("leadingEdge", "inPathway", "leadingEdge_orthologs", "inPathway_orthologs")
+for (col in gene_cols) {
+  if (col %in% names(display_results)) {
+    display_results[[col]] <- gsub(",", ", ", display_results[[col]])
+  }
 }
 
 # Find pathway column index for special styling (0-based)
 pathway_col_idx <- which(colnames(display_results) == "pathway") - 1
+
+# Find gene column indices for special styling (0-based)
+gene_col_indices <- which(colnames(display_results) %in% gene_cols) - 1
+
+# Prepare display table: use pathway_link if it exists, otherwise keep pathway
+display_table <- display_results
+if ("pathway_link" %in% names(display_table)) {
+  # Replace pathway column with linked version
+  pathway_idx <- which(names(display_table) == "pathway")
+  display_table <- display_table %>%
+    select(-pathway) %>%
+    relocate(pathway_link, .after = all_of(names(display_table)[pathway_idx - 1]))
+  # Rename for display
+  names(display_table)[names(display_table) == "pathway_link"] <- "pathway"
+}
+
+# Update pathway column index after transformation
+pathway_col_idx <- which(colnames(display_table) == "pathway") - 1
 
 # Define columns to hide by default (only exact column names that may exist)
 cols_to_hide <- c("geneScore", "fdr_correction_mode", "nMoreExtreme", "size", 
@@ -686,14 +761,15 @@ cols_to_hide <- c("geneScore", "fdr_correction_mode", "nMoreExtreme", "size",
                   "inPathway", "species", "main_collection")
 
 # Get indices of columns to hide (0-based for DT)
-all_col_names <- colnames(display_results)
+all_col_names <- colnames(display_table)
 hidden_col_indices <- which(all_col_names %in% cols_to_hide) - 1
 
 # Create interactive datatable with buttons and Shiny formatting
 dt <- datatable(
-  display_results,
+  display_table,
   extensions = c('Buttons'),
   filter = "none",
+  escape = FALSE,  # Allow HTML rendering for links
   options = list(
     dom = 'Blfrtip',
     buttons = list(
@@ -711,6 +787,7 @@ dt <- datatable(
     scrollX = TRUE,
     columnDefs = list(
       list(targets = pathway_col_idx, width = "250px"),
+      list(targets = gene_col_indices, width = "350px"),
       list(visible = FALSE, targets = hidden_col_indices)
     ),
     initComplete = htmlwidgets::JS("
@@ -738,7 +815,23 @@ dt <- datatable(
     `white-space` = "pre-wrap",
     `word-break` = "break-word",
     `line-height` = "1.2"
-  ) %>%
+  )
+
+# Apply same styling to gene-listing columns if they exist
+gene_cols_present <- intersect(gene_cols, colnames(display_table))
+if (length(gene_cols_present) > 0) {
+  for (gene_col in gene_cols_present) {
+    dt <- dt %>%
+      formatStyle(
+        columns = gene_col,
+        `white-space` = "pre-wrap",
+        `word-break` = "break-word",
+        `line-height` = "1.2"
+      )
+  }
+}
+
+dt <- dt %>%
   htmlwidgets::prependContent(
     htmltools::tags$style(
       htmltools::HTML("
