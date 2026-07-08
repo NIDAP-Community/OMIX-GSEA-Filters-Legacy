@@ -14,50 +14,62 @@ Filter GSEA table formatted output from Omix GSEA based on multiple criteria inc
 
 ## Output
 
-- **Filtered GSEA Results**: `filtered_gsea_results.csv` containing pathways that pass all filter criteria
-- **Filtering Summary**: `filtering_summary.png` showing before/after pathway counts
-  - Total pathways retained
-  - Pathways by MSigDB collection
-  - Pathways by contrast
-- **Enrichment Direction**: `enrichment_direction.png` showing positive/negative NES distribution
-  - Overall enrichment direction
-  - Direction breakdown by collection
-- **Interactive Bubble Plot**: Volcano-bubble chart visualization (displayed in logs)
+- **Filtered GSEA Results**: Available in three formats
+  - `filtered_gsea_results.csv` - Human-readable CSV format
+  - `filtered_gsea_results.rds` - R native format (preserves data types, faster loading in R)
+  - `filtered_gsea_results_table.html` - **Interactive HTML table** with:
+    - Live search and column filtering
+    - Sortable columns (click headers)
+    - Export buttons (Copy, CSV, Excel)
+    - Pagination controls
+    - Fixed header for easy scrolling
+  - All files contain pathways passing filter criteria, sorted by p-value (most significant first)
+- **Filtering Summary**: `filtering_summary.png` visualization with two panels:
+  - **Top panel**: Total unique pathways before/after filtering with retention percentage
+  - **Bottom panel**: Filtered pathways by contrast, grouped by enrichment direction (UP/DN)
+    - Shows stacked bars by MSigDB collection when ≤12 collections present
+    - Color-coded by collection or direction
+    - Caption dynamically shows NES or ES based on selected enrichment score type
+
+### How to Use the Interactive Table
+
+1. Click `filtered_gsea_results_table.html` in results panel
+2. Opens in browser with full interactivity:
+   - **Search**: Type in global search box to filter all columns
+   - **Column filters**: Use dropdown filters at top of each column
+   - **Sort**: Click column headers to sort (click again to reverse)
+   - **Export**: Use Copy/CSV/Excel buttons to export visible rows
+   - **Navigate**: Use pagination controls at bottom
 
 ## Usage
 
 ### Using App Panel (Recommended)
 
-The capsule includes a comprehensive App Panel with six parameter categories:
+The capsule includes a comprehensive App Panel with three parameter categories:
 
-1. **Input Data**
-   - Upload your GSEA results CSV file directly, OR
-   - Use an attached data asset (data asset section below)
+#### 1. **Input Data**
+   - **Upload GSEA Results File**: Upload your GSEA results CSV file directly, OR use an attached data asset
+   - **Contrast Filter Mode**: Select how to filter by contrasts
+     - `none` = include all contrasts
+     - `keep` = include only specified contrasts
+     - `remove` = exclude specified contrasts
+   - **Contrasts**: Comma-separated contrast names (used with keep/remove mode)
 
-2. **P-value Filtering**
-   - Choose p-value type (adjusted/raw)
-   - Set significance threshold (default: 0.05)
+#### 2. **Statistical Filters**
+   - **P-value Type**: `adjusted p-value` (FDR) or `raw p-value`
+   - **P-value Threshold**: Maximum p-value to include (default: 0.05)
+   - **Enrichment Score Type**: `NES` (normalized) or `ES` (raw)
+   - **Enrichment Score Threshold**: Minimum absolute score (set to 0 to disable filtering)
+   - **Enrichment Direction**: `+/-` (both), `+` (positive only), or `-` (negative only)
+   - **Size Filter Type**: `Pathway size` or `Leading Edge (LE) size`
+   - **Minimum Size**: Minimum pathway/LE size (set to 0 to disable filtering)
+   - **Top Rank Filter**: Keep top N pathways per collection and contrast (e.g., `10`), or `all`
 
-3. **Enrichment Score Filtering**
-   - Select score type (NES/ES/none)
-   - Set threshold and direction (+/-, +, -)
-
-4. **Pathway Size Filtering**
-   - Choose size type (pathway/leading edge)
-   - Set minimum size cutoff
-
-5. **Advanced Filters**
-   - Top N pathways per collection
-   - Filter by MSigDB collections (e.g., H, C2)
-   - Filter by specific pathways
-   - Filter by genes (in LE or pathway)
-   - Filter by contrasts (keep/remove mode)
-
-6. **Display Options**
-   - Bubble color variable
-   - Sort order
-
-You can either upload a CSV file directly or attach a GSEA results data asset, then configure filtering parameters through the App Panel interface.
+#### 3. **Annotation Filters**
+   - **Collections to Include**: Comma-separated MSigDB collections (e.g., `H,C2`), or leave empty for all
+   - **Pathways to Include**: Comma-separated pathway names to include, or leave empty for all
+   - **Gene Filter Universe**: Filter by genes in `Leading Edge (LE)` or entire `Pathway`
+   - **Genes to Include**: Comma-separated gene symbols (e.g., `TP53,BRCA1`), or leave empty for all
 
 ### Command Line Usage
 
@@ -86,7 +98,7 @@ Filter hallmark pathways only:
 
 Filter pathways containing TP53:
 ```bash
-./run --genes_to_include TP53
+./run --genes_to_include TP53 --gene_filter_universe "Leading Edge (LE)"
 ```
 
 Keep only top 10 pathways per collection and contrast:
@@ -94,25 +106,33 @@ Keep only top 10 pathways per collection and contrast:
 ./run --top_rank_filter 10
 ```
 
+Filter to specific contrasts:
+```bash
+./run --contrast_filter keep --contrasts "Treatment_vs_Control,DrugA_vs_Control"
+```
+
 ## Filtering Capabilities
 
 The GSEA_Filters function supports comprehensive filtering:
 
-- **P-value filtering**: Raw or adjusted p-values
-- **Enrichment score filtering**: ES or NES with directional control
+- **P-value filtering**: Raw or adjusted p-values with threshold
+- **Enrichment score filtering**: ES or NES with absolute threshold and directional control (+/-, +, -)
 - **Size filtering**: Minimum pathway or leading edge size
-- **Top rank filtering**: Keep top N per collection/contrast
-- **Collection filtering**: Select specific MSigDB collections
-- **Pathway filtering**: Include specific pathways
-- **Gene filtering**: Filter by genes in leading edge or pathway
-- **Contrast filtering**: Keep or exclude specific contrasts
+- **Top rank filtering**: Keep top N pathways per collection and contrast
+- **Collection filtering**: Select specific MSigDB collections (e.g., H, C2, C5)
+- **Pathway filtering**: Include specific pathways by name
+- **Gene filtering**: Filter by genes in leading edge or entire pathway
+- **Contrast filtering**: Keep or exclude specific experimental contrasts
+
+**Note**: To disable enrichment score or size filtering, set the threshold/minimum to 0.
 
 ## Notes
 
-- The filter function displays detailed filtering steps and summary statistics in computation logs
-- An interactive bubble plot is generated showing filtered pathways (NES vs -log10 p-value)
-- Compatible with GSEA Preranked output format (current and legacy versions)
+- Output is automatically sorted by p-value with most significant pathways first
+- The filtering summary visualization shows the reduction from input to filtered pathways
 - All text parameters accept comma-separated values (e.g., "H,C2,C5" for collections)
+- Compatible with GSEA Preranked output format (current and legacy versions)
+- Detailed filtering steps and summary statistics are displayed in computation logs
 
 ## Contact
 

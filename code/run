@@ -8,8 +8,11 @@ echo "=== Running GSEA Filter ==="
 echo ""
 
 # Define parameter names in order (matching App Panel definition order)
+# Order: Input Data -> Statistical Filters -> Annotation Filters
 param_names=(
   "input_file"
+  "contrast_filter"
+  "contrasts"
   "p_value_filter"
   "p_value_threshold"
   "enrichment_score_filter"
@@ -22,9 +25,6 @@ param_names=(
   "pathways_to_include"
   "gene_filter_universe"
   "genes_to_include"
-  "contrast_filter"
-  "contrasts"
-  "sort_decreasing"
 )
 
 # Check if arguments are named (start with --) or positional

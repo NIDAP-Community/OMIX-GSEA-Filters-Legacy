@@ -173,6 +173,9 @@ if (!is.null(contrasts_vec)) cat("Contrasts:", paste(contrasts_vec, collapse = "
 
 # Apply filters using the GSEA_Filters function
 cat("\n=== Applying GSEA Filters ===\n")
+cat("DEBUG: p_value_filter class:", class(opt$p_value_filter), "\n")
+cat("DEBUG: p_value_filter value:", sprintf("'%s'", opt$p_value_filter), "\n")
+cat("DEBUG: p_value_filter length:", length(opt$p_value_filter), "\n")
 
 # First, apply QC filters only to get baseline for "before" count in visualization
 qc_filtered_results <- GSEA_Filters(
@@ -317,6 +320,15 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
   # Decide whether to use stacked bars by collection (≤12 collections) or simple grouped bars
   use_stacked <- n_main_collections > 0 && n_main_collections <= 12
   
+  # Determine score label for captions (NES or ES)
+  score_label <- if (opt$enrichment_score_filter == "NES (Normalized Enrichment Score)") {
+    "NES"
+  } else if (opt$enrichment_score_filter == "ES (Enrichment Score)") {
+    "ES"
+  } else {
+    "score"  # fallback
+  }
+  
   if (use_stacked) {
     # Stacked bars by main collection
     direction_data <- filtered_results %>%
@@ -380,7 +392,7 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
     
     separator_positions <- contrast_changes
     
-    # Calculate x-axis label positions (one per contrast, centered)
+    # Calculate x-axis label positions (one per contrast, centered between DN/UP bars)
     contrast_positions <- bar_heights %>%
       group_by(contrast) %>%
       summarise(
@@ -390,9 +402,6 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
         .groups = "drop"
       )
     
-    contrast_label_positions <- contrast_positions$x_center
-    contrast_levels_ordered <- contrast_positions$contrast
-    
     # Color palette for main collections (using a colorblind-friendly palette)
     collection_colors <- setNames(
       RColorBrewer::brewer.pal(min(12, n_main_collections), "Set3"),
@@ -401,9 +410,18 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
     
     p2 <- ggplot(direction_data, aes(x = interaction(contrast, direction), y = count, fill = main_collection)) +
       geom_col(position = "stack", width = 0.7) +
-      scale_x_discrete(
-        breaks = contrast_label_positions,
-        labels = contrast_levels_ordered
+      # Remove default x-axis labels (will add custom text annotations)
+      scale_x_discrete(breaks = NULL) +
+      # Add custom contrast labels at center positions
+      annotate(
+        "text",
+        x = contrast_positions$x_center,
+        y = -max(direction_data$count) * 0.05,  # slightly below x-axis
+        label = contrast_positions$contrast,
+        angle = 45,
+        hjust = 1,
+        vjust = 1,
+        size = 3.7
       ) +
       # Add vertical separator lines between contrast groups
       {if (length(separator_positions) > 0) {
@@ -433,28 +451,30 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
         x = "",
         y = "Number of Pathways",
         caption = if (has_negative && has_positive) {
-          "Each contrast shows two bars: DN (down-regulated, negative NES) and UP (up-regulated, positive NES)"
+          sprintf("Each contrast shows two bars: DN (down-regulated, negative %s) and UP (up-regulated, positive %s)", score_label, score_label)
         } else if (has_negative) {
-          "Bars show DN (down-regulated, negative NES) pathways only"
+          sprintf("Bars show DN (down-regulated, negative %s) pathways only", score_label)
         } else {
-          "Bars show UP (up-regulated, positive NES) pathways only"
+          sprintf("Bars show UP (up-regulated, positive %s) pathways only", score_label)
         }
       ) +
       theme_minimal(base_size = 13) +
       theme(
         plot.title = element_text(hjust = 0.5, face = "bold", size = 15),
         plot.caption = element_text(hjust = 0.5, size = 10, color = "gray40", margin = margin(t = 10)),
-        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 11),
+        axis.text.x = element_blank(),  # removed - using custom annotations
         axis.text.y = element_text(size = 11),
         axis.title.y = element_text(size = 13, face = "bold"),
         legend.position = "right",
         legend.text = element_text(size = 11),
         legend.title = element_text(size = 12, face = "bold"),
         panel.grid.major.x = element_blank(),
-        panel.grid.minor = element_blank()
+        panel.grid.minor = element_blank(),
+        plot.margin = margin(10, 10, 30, 10)  # extra bottom margin for angled labels
       ) +
-      # Expand y-axis to accommodate UP/DN labels
-      scale_y_continuous(expand = expansion(mult = c(0.02, 0.12)))
+      # Expand y-axis to accommodate UP/DN labels above and contrast labels below
+      scale_y_continuous(expand = expansion(mult = c(0.1, 0.12))) +
+      coord_cartesian(clip = "off")  # allow labels to extend beyond plot area
   } else {
     # Simple grouped bars by direction (fallback)
     direction_data <- filtered_results %>%
@@ -561,11 +581,11 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
         x = "",
         y = "Number of Pathways",
         caption = if (has_negative && has_positive) {
-          "Each contrast shows two bars: DN (down-regulated, negative NES) and UP (up-regulated, positive NES)"
+          sprintf("Each contrast shows two bars: DN (down-regulated, negative %s) and UP (up-regulated, positive %s)", score_label, score_label)
         } else if (has_negative) {
-          "Bars show DN (down-regulated, negative NES) pathways only"
+          sprintf("Bars show DN (down-regulated, negative %s) pathways only", score_label)
         } else {
-          "Bars show UP (up-regulated, positive NES) pathways only"
+          sprintf("Bars show UP (up-regulated, positive %s) pathways only", score_label)
         }
       ) +
       theme_minimal(base_size = 13) +
@@ -606,7 +626,60 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
 
 # Save filtered results
 cat("=== Saving Results ===\n")
+
+# Save as CSV
 write.csv(filtered_results, output_file, row.names = FALSE)
 cat(sprintf("Filtered results saved to: %s\n", output_file))
+
+# Save as RDS
+output_file_rds <- sub("\\.csv$", ".rds", output_file)
+saveRDS(filtered_results, output_file_rds)
+cat(sprintf("Filtered results saved to: %s\n", output_file_rds))
+
+# Generate interactive HTML table using DT
+cat("Generating interactive HTML table...\n")
+library(DT)
+
+output_file_html <- sub("\\.csv$", "_table.html", output_file)
+
+# Round numeric columns for better display
+display_results <- filtered_results %>%
+  mutate(across(where(is.numeric), ~round(., 4)))
+
+# Create interactive datatable with enhanced features
+dt <- datatable(
+  display_results,
+  extensions = c('Buttons', 'FixedHeader', 'Scroller'),
+  options = list(
+    dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel'),
+    fixedHeader = TRUE,
+    scrollX = TRUE,
+    scrollY = '600px',
+    scroller = TRUE,
+    pageLength = 50,
+    lengthMenu = c(10, 25, 50, 100, 500),
+    searchHighlight = TRUE,
+    columnDefs = list(
+      list(className = 'dt-center', targets = "_all")
+    )
+  ),
+  filter = 'top',
+  rownames = FALSE,
+  caption = htmltools::tags$caption(
+    style = 'caption-side: top; text-align: center; font-size: 16px; font-weight: bold;',
+    'Filtered GSEA Results - Interactive Table'
+  )
+)
+
+# Save as self-contained HTML
+htmlwidgets::saveWidget(
+  dt, 
+  output_file_html, 
+  selfcontained = TRUE,
+  title = "Filtered GSEA Results"
+)
+
+cat(sprintf("Interactive HTML table saved to: %s\n", output_file_html))
 
 cat("\n=== GSEA Filter Complete ===\n")

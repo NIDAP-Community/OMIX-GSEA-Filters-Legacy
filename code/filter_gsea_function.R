@@ -484,8 +484,11 @@ GSEA_Filters <- function(
     )
     filterInput_byPvalue <- switch(
         p_value_filter,
-        "p-value" = "pval",
-        "adjusted p-value" = "padj"
+        "raw p-value" = "pval",
+        "p-value" = "pval",  # legacy support
+        "adjusted p-value" = "padj",
+        "nominal p-value" = "pval",  # alternative naming
+        stop(sprintf("Unknown p_value_filter: '%s'. Expected 'raw p-value', 'adjusted p-value', or 'nominal p-value'", p_value_filter))
     )
 
     ## adjust old Preranked GSEA output (release v67 or lower)

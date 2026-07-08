@@ -195,6 +195,12 @@
 			"file_name": "filtered_gsea_results.csv"
 		},
 		{
+			"file_name": "filtered_gsea_results.rds"
+		},
+		{
+			"file_name": "filtered_gsea_results_table.html"
+		},
+		{
 			"file_name": "filtering_summary.png"
 		}
 	]
