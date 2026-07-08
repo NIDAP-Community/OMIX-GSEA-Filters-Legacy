@@ -31,7 +31,6 @@ The following columns **must** be present in the input file:
 | `padj` | numeric | Adjusted p-value (FDR) |
 | `ES` | numeric | Enrichment Score (raw) |
 | `NES` | numeric | Normalized Enrichment Score |
-| `nMoreExtreme` | integer | Number of permutations more extreme than observed |
 | `size` | integer | Total genes in pathway |
 | `leadingEdge` | character | Comma-separated gene symbols in leading edge |
 | `size_leadingEdge` | integer | Number of genes in leading edge |
@@ -45,6 +44,7 @@ These columns are optional:
 
 | Column | Type | Description |
 |--------|------|-------------|
+| `nMoreExtreme` | integer | Number of permutations more extreme than observed |
 | `leadingEdge_orthologs` | character | Human orthologs of leading edge genes |
 | `inPathway_orthologs` | character | Human orthologs of pathway genes |
 
@@ -75,6 +75,11 @@ contrast,geneScore,fdr_correction_mode,pathways_database,collection,pathway,pval
       - Automatic species detection (human vs mouse MSigDB)
       - Links open in new browser tab to preserve your work
       - Only verified MSigDB pathways are linked; custom pathways display as plain text
+    - **Column filters**: Type-to-filter inputs for all columns
+      - Character columns (contrast, pathway, collections, genes): autocomplete with filtered suggestions
+      - Numeric columns (pval, padj, ES, NES, size, fraction): separate Min and Max inputs for range filtering
+      - Filters work on both visible and hidden columns
+      - Clear individual filters or reset all at once
     - Formatted numbers: p-values in scientific notation, scores/fractions rounded
     - Sortable columns (click headers)
     - Copy button for quick data export
@@ -98,6 +103,14 @@ contrast,geneScore,fdr_correction_mode,pathways_database,collection,pathway,pval
      - Automatically detects species (human vs mouse) based on collection names
      - Opens in new tab to keep your results visible
      - Only verified MSigDB pathways are linked; custom pathways appear as plain text
+   - **Column filters**: Type-to-filter inputs above each column for interactive data exploration
+     - **Character columns** (contrast, pathway, collection, genes): Type to see autocomplete suggestions, select or type exact matches
+     - **Numeric columns** (pval, padj, ES, NES, size, fractions): Enter Min and/or Max values for range filtering
+       - Example: Min: `-2`, Max: `-1` filters NES values between -2 and -1
+       - Leave Min or Max empty to filter one-sided (e.g., Max: `0.01` for padj ≤ 0.01)
+     - **Gene searches**: Type gene symbols in `leadingEdge` or `inPathway` filters to find pathways containing those genes
+     - Filters work on hidden columns too - reveal with Show/Hide Columns button
+     - Clear individual filters by deleting text, or reset all filters at once
    - **Copy button**: Click to copy all visible data to clipboard (teal button)
    - **Show/Hide Columns**: Toggle column visibility - technical columns (size, geneScore, leadingEdge, etc.) are hidden by default
    - **Rows per page**: Choose 5, 10, 25, 50, 100, or All rows to display (default: 5)
@@ -108,7 +121,7 @@ contrast,geneScore,fdr_correction_mode,pathways_database,collection,pathway,pval
      - Pathway names with underscores replaced by spaces and wrapped for readability
      - Gene lists formatted with comma+space for better readability
 3. **Hidden by default** (use Show/Hide Columns to reveal):
-   - Technical: `geneScore`, `fdr_correction_mode`, `nMoreExtreme`, `size`
+   - Technical: `geneScore`, `fdr_correction_mode`, `nMoreExtreme`, `size`, `pathways_database`
    - Gene lists: `leadingEdge`, `inPathway`, `leadingEdge_orthologs`, `inPathway_orthologs`
    - Metadata: `species`, `main_collection`
 

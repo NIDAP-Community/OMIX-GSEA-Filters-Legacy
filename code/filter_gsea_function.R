@@ -79,16 +79,6 @@
 #' Character vector. Use only to change default value defined by the data
 #' @param Y_Axis_Maximum
 #' Character vector. Use only to change default value defined by the data
-#' @param Tested_Contrast
-#' Character vector. Use only if outdated 'Preranked GSEA {CCBR] was run to
-#' obtain the input GSEA table (released version 67 or lower); tested contrast
-#' should be specified exactly the same way as when Preranked GSEA was run,
-#' e.g. treated-control
-#' @param Gene_Score
-#' Character vector. Use only if outdated 'Preranked GSEA {CCBR] was run to
-#' obtain the input GSEA table (released version 67 or lower); suffix in
-#' column name containing the score that was used to rank the genes in
-#' descending order when GSEA was run, e.g. _tstat
 #' @param Display_Warnings
 #' Numeric. Set to 0 if you want warnings to appear in the Logs output tab;
 #' default is set to -1 which mutes the warnings. Default: \code{-1}.
@@ -125,8 +115,6 @@ GSEA_Filters <- function(
             "table to be kept or removed for filtering"
         )
     ),
-    tested_contrast = c(),
-    gene_score = c(),
     display_warnings = -1
 ) {
     ## This function filters GSEA Table
@@ -273,188 +261,6 @@ GSEA_Filters <- function(
             }
         }
 
-    # adjust old GSEA table (v67 or lower)
-    adjust.v67 <-
-        function(
-            input,
-            gS,
-            tC,
-            sp,
-            required_columns = c(
-                "contrast",
-                "geneScore",
-                "fdr_correction_mode",
-                "collection",
-                "pathway",
-                "pval",
-                "padj",
-                "ES",
-                "NES",
-                "nMoreExtreme",
-                "size",
-                "leadingEdge",
-                "size_leadingEdge",
-                "inPathway"
-            )
-        ) {
-            missing_columns <- setdiff(required_columns, colnames(input))
-
-            if (length(missing_columns) > 0) {
-                cat(
-                    paste0(
-                        "WARNING: Output from outdated 'Preranked GSEA ",
-                        "[CCBR]' detected.\n"
-                    )
-                )
-                cat(
-                    sprintf(
-                        paste0(
-                            "\nWARNING: Missing columns (%s) are added, ",
-                            "except for 'inPathway' column.\n\t Using ",
-                            "'Gene Filter Universe=Pathway' with 'Genes to ",
-                            "Include' selected will fail.\n\t Run ",
-                            "'Preranked GSEA [CCBR]' v179 or the latest ",
-                            "release to recover 'inPathway' column (genes ",
-                            "mapped to pathways in the data).\n\t To ",
-                            "reproduce the results of v67, set 'FDR ",
-                            "Correction Mode' to 'over all collections'.\n\t ",
-                            "Using the latest release of the GSEA Preranked ",
-                            "may not produce exactly the same results due to ",
-                            "a difference in gene mapping.\n\n"
-                        ),
-                        paste(missing_columns, collapse = ", ")
-                    )
-                )
-                if (is.null(gS)) {
-                    gS <- "NULL"
-                    cat(
-                        paste0(
-                            "\nWARNING: 'Gene score' parameter not ",
-                            "provided therefore 'geneScore' column is ",
-                            "assigned the default NULL value\n\t if ",
-                            "downstream 'GSEA Running Score Diagram & ",
-                            "Leading Edge Heatmap [Bulk] [CCBR]' will be ",
-                            "linked to this output,\n\t it will fail due ",
-                            "to this specification of the 'Gene score' ",
-                            "parameter.\n"
-                        )
-                    )
-                } else {
-                    if (length(gS) > 1) {
-                        gS <- gS[1]
-                        cat(
-                            sprintf(
-                                paste0(
-                                    "\nWARNING: too many values for 'Gene ",
-                                    "score' provided; only the first one ",
-                                    "used, '%s'\n"
-                                ),
-                                gS
-                            )
-                        )
-                    }
-                    has.underscore <- substring(gS, 1, 1) == "_"
-                    if (!has.underscore) {
-                        gS <- paste0("_", gS[1])
-                        cat(
-                            sprintf(
-                                paste0(
-                                    "\nWARNING: 'Gene score' should start ",
-                                    "with underscore to match column naming ",
-                                    "convention in a DEG table used for GSEA ",
-                                    "run (e.g. '_tstat');\n\t column ",
-                                    "'geneScore' is assigned the provided ",
-                                    "value with '_' added ('%s');\n\t if ",
-                                    "downstream 'GSEA Running Score Diagram ",
-                                    "& Leading Edge Heatmap [Bulk] [CCBR]' ",
-                                    "will be linked to this output,\n\t it ",
-                                    "may fail if this is not an adequate ",
-                                    "specification of the 'Gene score' ",
-                                    "parameter.\n"
-                                ),
-                                gS
-                            )
-                        )
-                    }
-                }
-                if (is.null(tC)) {
-                    tC <- "NULL"
-                    cat(
-                        paste0(
-                            "\nWARNING: 'Tested contrast' parameter not ",
-                            "provided therefore 'contrast' column is ",
-                            "assigned the default NULL value;\n\t if ",
-                            "downstream 'GSEA Running Score Diagram & ",
-                            "Leading Edge Heatmap [Bulk] [CCBR]' will be ",
-                            "linked to this output,\n\t it will fail due ",
-                            "to this specification of the 'Tested contrast' ",
-                            "parameter.\n"
-                        )
-                    )
-                } else {
-                    if (length(tC) > 1) {
-                        tC <- tC[1]
-                        cat(
-                            sprintf(
-                                paste0(
-                                    "\nWARNING: too many values for 'Tested ",
-                                    "contrast' provided; only the first one ",
-                                    "used, '%s'\n"
-                                ),
-                                tC
-                            )
-                        )
-                    }
-                    is.contrast <- any(grepl("-", tC))
-                    if (!is.contrast) {
-                        cat(
-                            sprintf(
-                                paste0(
-                                    "\nWARNING: 'Tested contrast' should be ",
-                                    "specified exactly the same way as when ",
-                                    "Preranked GSEA was run (e.g. ",
-                                    "treated-control);\n\t column 'contrast' ",
-                                    "is assigned the provided '%s' value;\n\t ",
-                                    "if downstream 'GSEA Running Score ",
-                                    "Diagram & Leading Edge Heatmap [Bulk] ",
-                                    "[CCBR]' will be linked to this output,\n",
-                                    "\t it may fail if this is not an ",
-                                    "adequate specification of the 'Tested ",
-                                    "contrast' parameter.\n"
-                                ),
-                                tC[1]
-                            )
-                        )
-                    }
-                }
-                input <-
-                    input %>%
-                    dplyr::mutate(
-                        contrast = tC,
-                        geneScore = gS,
-                        fdr_correction_mode = "over all collections",
-                        size_leadingEdge = sapply(
-                            strsplit(leadingEdge, ","),
-                            length
-                        )
-                    )
-                input <-
-                    input[, match(
-                        required_columns[required_columns != "inPathway"],
-                        colnames(input)
-                    )]
-                input <-
-                    input[, na.omit(match(
-                        c(required_columns),
-                        colnames(input)
-                    ))]
-                return(input)
-            } else {
-                cat("Filtering Preranked GSEA table.\n")
-                return(input)
-            }
-        }
-
     ## --------------- ##
     ## Main Code Block ##
     ## --------------- ##
@@ -474,13 +280,6 @@ GSEA_Filters <- function(
         stop(sprintf("Unknown p_value_filter: '%s'. Expected 'raw p-value', 'adjusted p-value', or 'nominal p-value'", p_value_filter))
     )
 
-    ## adjust old Preranked GSEA output (release v67 or lower)
-    gsea_table <-
-        adjust.v67(
-            input = gsea_table,
-            gS = gene_score,
-            tC = tested_contrast
-        )
     if (!is.null(genes_to_include)) {
         if (gene_filter_universe == "Leading Edge (LE)") {
             available_genes <- unique(trimws(unlist(strsplit(
