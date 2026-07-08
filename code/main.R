@@ -624,6 +624,26 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
 
 # Filtering summary removed - all information is in the filtering_summary.png visualization
 
+# Reorder columns: put main_collection before collection if both exist
+if ("main_collection" %in% names(filtered_results) && "collection" %in% names(filtered_results)) {
+  # Get column positions
+  col_idx <- which(names(filtered_results) == "collection")
+  main_col_idx <- which(names(filtered_results) == "main_collection")
+  
+  # Only reorder if main_collection is after collection
+  if (main_col_idx > col_idx) {
+    # Get all column names
+    col_names <- names(filtered_results)
+    # Remove main_collection from its current position
+    col_names <- col_names[col_names != "main_collection"]
+    # Insert main_collection right before collection
+    insert_pos <- which(col_names == "collection")
+    col_names <- c(col_names[1:(insert_pos-1)], "main_collection", col_names[insert_pos:length(col_names)])
+    # Reorder the dataframe
+    filtered_results <- filtered_results[, col_names]
+  }
+}
+
 # Save filtered results
 cat("=== Saving Results ===\n")
 
@@ -758,17 +778,147 @@ pathway_col_idx <- which(colnames(display_table) == "pathway") - 1
 # Define columns to hide by default (only exact column names that may exist)
 cols_to_hide <- c("geneScore", "fdr_correction_mode", "nMoreExtreme", "size", 
                   "leadingEdge", "leadingEdge_orthologs", "inPathway_orthologs", 
-                  "inPathway", "species", "main_collection")
+                  "inPathway", "species", "main_collection", "pathways_database")
 
 # Get indices of columns to hide (0-based for DT)
 all_col_names <- colnames(display_table)
 hidden_col_indices <- which(all_col_names %in% cols_to_hide) - 1
 
-# Create interactive datatable with buttons and Shiny formatting
+# Define columns that should have filters
+# Character columns (text filters)
+char_filter_cols <- c("contrast", "collection", "main_collection", "pathway")
+# Numeric columns (range filters)
+num_filter_cols <- c("pval", "padj", "ES", "NES", "size", "fractionLeadingEdge", 
+                     "size_leadingEdge", "fraction_leadingEdge")
+
+# Get column names that exist in the table
+char_filter_cols_present <- intersect(char_filter_cols, all_col_names)
+num_filter_cols_present <- intersect(num_filter_cols, all_col_names)
+
+# Build columnDefs list
+column_defs_list <- list(
+  list(targets = pathway_col_idx, width = "250px"),
+  list(targets = gene_col_indices, width = "350px"),
+  list(visible = FALSE, targets = hidden_col_indices)
+)
+
+# JavaScript for custom column filters (autocomplete for character, range for numeric)
+custom_filter_js <- sprintf("
+function(settings, json) {
+  var api = this.api();
+  var charCols = [%s];
+  var numCols = [%s];
+  var filterFunctions = {};
+  
+  api.columns().every(function(idx) {
+    var column = this;
+    var header = $(column.header());
+    var colName = header.text().trim();
+    
+    // Clear any existing content in header
+    header.empty();
+    
+    // Add column name
+    header.append('<div style=\"margin-bottom:3px;font-weight:bold;\">' + colName + '</div>');
+    
+    // Add searchable autocomplete for character columns
+    if (charCols.includes(colName)) {
+      // Get unique values from column
+      var uniqueVals = [];
+      column.data().unique().sort().each(function(d, j) {
+        // Extract text from HTML if present
+        var text = $('<div/>').html(d).text();
+        if (text && text.trim() !== '') {
+          uniqueVals.push(text.trim());
+        }
+      });
+      
+      // Create unique datalist ID
+      var datalistId = 'datalist_' + idx;
+      
+      // Create input with datalist for autocomplete
+      var input = $('<input type=\"text\" list=\"' + datalistId + '\" placeholder=\"Type or select...\" style=\"width:100%%;font-size:11px;padding:2px;\" />')
+        .appendTo(header)
+        .on('input change', function() {
+          var val = $.fn.dataTable.util.escapeRegex($(this).val());
+          // Use contains search for partial matches as user types
+          column.search(val ? val : '', true, false).draw();
+        });
+      
+      // Create datalist with options
+      var datalist = $('<datalist id=\"' + datalistId + '\"></datalist>').appendTo(header);
+      uniqueVals.forEach(function(val) {
+        datalist.append('<option value=\"' + val + '\">');
+      });
+    }
+    
+    // Add range filter for numeric columns (separate Min and Max boxes)
+    else if (numCols.includes(colName)) {
+      // Create container for min/max inputs
+      var filterContainer = $('<div style=\"display:flex;gap:2px;\"></div>').appendTo(header);
+      
+      var inputMin = $('<input type=\"text\" placeholder=\"Min\" style=\"width:50%%;font-size:11px;padding:2px;\" />')
+        .appendTo(filterContainer);
+      
+      var inputMax = $('<input type=\"text\" placeholder=\"Max\" style=\"width:50%%;font-size:11px;padding:2px;\" />')
+        .appendTo(filterContainer);
+      
+      // Shared filter function
+      var applyFilter = function() {
+        var filterKey = 'filter_' + idx;
+        var minVal = inputMin.val().trim();
+        var maxVal = inputMax.val().trim();
+        
+        // Remove previous filter for this column
+        if (filterFunctions[filterKey]) {
+          var filterIdx = $.fn.dataTable.ext.search.indexOf(filterFunctions[filterKey]);
+          if (filterIdx > -1) {
+            $.fn.dataTable.ext.search.splice(filterIdx, 1);
+          }
+        }
+        
+        // If both empty, clear filter
+        if (minVal === '' && maxVal === '') {
+          delete filterFunctions[filterKey];
+        } else {
+          // Parse values, default to -/+ Infinity if empty
+          var min = (minVal === '') ? -Infinity : parseFloat(minVal);
+          var max = (maxVal === '') ? Infinity : parseFloat(maxVal);
+          
+          // Handle NaN (invalid input) - treat as no constraint
+          if (isNaN(min)) min = -Infinity;
+          if (isNaN(max)) max = Infinity;
+          
+          // Create and store filter function
+          filterFunctions[filterKey] = function(settings, data, dataIndex) {
+            var colValue = parseFloat(data[idx]);
+            // If column value is not a number, include it (don't filter out)
+            if (isNaN(colValue)) return true;
+            return colValue >= min && colValue <= max;
+          };
+          
+          $.fn.dataTable.ext.search.push(filterFunctions[filterKey]);
+        }
+        
+        api.draw();
+      };
+      
+      // Bind filter to both inputs
+      inputMin.on('keyup change', applyFilter);
+      inputMax.on('keyup change', applyFilter);
+    }
+  });
+}
+", 
+paste0('"', char_filter_cols_present, '"', collapse = ", "),
+paste0('"', num_filter_cols_present, '"', collapse = ", ")
+)
+
+# Create interactive datatable with buttons and custom column filters
 dt <- datatable(
   display_table,
   extensions = c('Buttons'),
-  filter = "none",
+  filter = "none",  # Disable built-in filters, use custom ones
   escape = FALSE,  # Allow HTML rendering for links
   options = list(
     dom = 'Blfrtip',
@@ -785,30 +935,11 @@ dt <- datatable(
       c('5', '10', '25', '50', '100', 'All')
     ),
     scrollX = TRUE,
-    columnDefs = list(
-      list(targets = pathway_col_idx, width = "250px"),
-      list(targets = gene_col_indices, width = "350px"),
-      list(visible = FALSE, targets = hidden_col_indices)
-    ),
-    initComplete = htmlwidgets::JS("
-      function(settings, json) {
-        var api = this.api();
-        api.columns().every(function() {
-          var col = this;
-          var header = $(col.header()).text();
-          if (header !== 'contrast') {
-            $('input', col.header()).remove();
-          }
-        });
-      }
-    ")
+    columnDefs = column_defs_list,
+    initComplete = htmlwidgets::JS(custom_filter_js)
   ),
   rownames = FALSE,
-  width = "100%",
-  caption = htmltools::tags$caption(
-    style = 'caption-side: top; text-align: center; font-size: 16px; font-weight: bold;',
-    'Filtered GSEA Results'
-  )
+  width = "100%"
 ) %>%
   formatStyle(
     columns = "pathway",
