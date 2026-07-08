@@ -18,11 +18,13 @@ Filter GSEA table formatted output from Omix GSEA based on multiple criteria inc
   - `filtered_gsea_results.csv` - Human-readable CSV format
   - `filtered_gsea_results.rds` - R native format (preserves data types, faster loading in R)
   - `filtered_gsea_results_table.html` - **Interactive HTML table** with:
-    - Live search and column filtering
+    - Formatted numbers: p-values in scientific notation, scores/fractions rounded
     - Sortable columns (click headers)
-    - Export buttons (Copy, CSV, Excel)
-    - Pagination controls
-    - Fixed header for easy scrolling
+    - Copy button for quick data export
+    - Show/Hide Columns button for customizable view
+    - Default displays 5 rows with menu options (5, 10, 25, 50, 100, All)
+    - Smart column visibility: technical columns hidden by default (use Show/Hide to reveal)
+    - Pathway text wrapping for better readability
   - All files contain pathways passing filter criteria, sorted by p-value (most significant first)
 - **Filtering Summary**: `filtering_summary.png` visualization with two panels:
   - **Top panel**: Total unique pathways before/after filtering with retention percentage
@@ -33,13 +35,20 @@ Filter GSEA table formatted output from Omix GSEA based on multiple criteria inc
 
 ### How to Use the Interactive Table
 
-1. Click `filtered_gsea_results_table.html` in results panel
-2. Opens in browser with full interactivity:
-   - **Search**: Type in global search box to filter all columns
-   - **Column filters**: Use dropdown filters at top of each column
-   - **Sort**: Click column headers to sort (click again to reverse)
-   - **Export**: Use Copy/CSV/Excel buttons to export visible rows
-   - **Navigate**: Use pagination controls at bottom
+1. Click `filtered_gsea_results_table.html` in results panel to open in browser
+2. **Key features:**
+   - **Copy button**: Click to copy all visible data to clipboard (teal button)
+   - **Show/Hide Columns**: Toggle column visibility - technical columns (size, geneScore, leadingEdge, etc.) are hidden by default
+   - **Rows per page**: Choose 5, 10, 25, 50, 100, or All rows to display (default: 5)
+   - **Sort**: Click any column header to sort (click again to reverse)
+   - **Formatted display**:
+     - P-values shown in scientific notation (e.g., 1.23e-05)
+     - Scores and fractions rounded to 2 decimals
+     - Pathway names with underscores replaced by spaces and wrapped for readability
+3. **Hidden by default** (use Show/Hide Columns to reveal):
+   - Technical: `geneScore`, `fdr_correction_mode`, `nMoreExtreme`, `size`
+   - Gene lists: `leadingEdge`, `inPathway`, `leadingEdge_orthologs`, `inPathway_orthologs`
+   - Metadata: `species`, `main_collection`
 
 ## Usage
 

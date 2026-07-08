@@ -642,90 +642,114 @@ library(DT)
 
 output_file_html <- sub("\\.csv$", "_table.html", output_file)
 
-# Round numeric columns for better display
-display_results <- filtered_results %>%
-  mutate(across(where(is.numeric), ~round(., 4)))
+# Prepare display data with column formatting (matching Shiny DT code)
+display_results <- filtered_results
 
-# Identify gene list columns to hide by default
-gene_list_cols <- c("leadingEdge", "inPathway", "leadingEdge_orthologs", "inPathway_orthologs")
-existing_gene_cols <- intersect(gene_list_cols, colnames(display_results))
-
-# Get column indices for gene list columns (DT uses 0-based indexing)
-if (length(existing_gene_cols) > 0) {
-  gene_col_indices <- which(colnames(display_results) %in% existing_gene_cols) - 1
-} else {
-  gene_col_indices <- c()
+# Format columns per Shiny code (safer, per-column formatting only if column exists)
+if ("pval" %in% names(display_results)) {
+  display_results$pval <- formatC(display_results$pval, format = "e", digits = 2)
+}
+if ("padj" %in% names(display_results)) {
+  display_results$padj <- formatC(display_results$padj, format = "e", digits = 2)
+}
+if ("score" %in% names(display_results)) {
+  display_results$score <- formatC(display_results$score, format = "f", digits = 2)
+}
+if ("NES" %in% names(display_results)) {
+  display_results$NES <- formatC(display_results$NES, format = "f", digits = 2)
+}
+if ("ES" %in% names(display_results)) {
+  display_results$ES <- formatC(display_results$ES, format = "f", digits = 2)
+}
+if ("size" %in% names(display_results)) {
+  display_results$size <- formatC(display_results$size, format = "d", digits = 0)
+}
+if ("size_leadingEdge" %in% names(display_results)) {
+  display_results$size_leadingEdge <- formatC(display_results$size_leadingEdge, format = "d", digits = 0)
+}
+if ("fraction" %in% names(display_results)) {
+  display_results$fraction <- formatC(display_results$fraction, format = "f", digits = 2)
+}
+if ("fraction_leadingEdge" %in% names(display_results)) {
+  display_results$fraction_leadingEdge <- formatC(display_results$fraction_leadingEdge, format = "f", digits = 2)
+}
+if ("pathway" %in% names(display_results)) {
+  display_results$pathway <- gsub("_", " ", display_results$pathway)
 }
 
-# Create toggle buttons for each gene list column
-toggle_buttons <- list()
-if (length(existing_gene_cols) > 0) {
-  for (col_name in existing_gene_cols) {
-    col_idx <- which(colnames(display_results) == col_name) - 1
-    button_label <- gsub("_", " ", col_name)
-    button_label <- tools::toTitleCase(button_label)
-    
-    toggle_buttons[[length(toggle_buttons) + 1]] <- list(
-      extend = 'colvis',
-      text = paste0('Toggle ', button_label),
-      columns = col_idx,
-      action = htmlwidgets::JS(sprintf(
-        "function(e, dt, node, config) {
-          var col = dt.column(%d);
-          col.visible(!col.visible());
-          $(node).toggleClass('active', col.visible());
-        }", col_idx
-      ))
-    )
-  }
-}
+# Find pathway column index for special styling (0-based)
+pathway_col_idx <- which(colnames(display_results) == "pathway") - 1
 
-# Build buttons list (standard export buttons + toggle buttons)
-all_buttons <- c(
-  list('copy', 'csv', 'excel'),
-  toggle_buttons
-)
+# Define columns to hide by default (only exact column names that may exist)
+cols_to_hide <- c("geneScore", "fdr_correction_mode", "nMoreExtreme", "size", 
+                  "leadingEdge", "leadingEdge_orthologs", "inPathway_orthologs", 
+                  "inPathway", "species", "main_collection")
 
-# Create interactive datatable with enhanced features
+# Get indices of columns to hide (0-based for DT)
+all_col_names <- colnames(display_results)
+hidden_col_indices <- which(all_col_names %in% cols_to_hide) - 1
+
+# Create interactive datatable with buttons and Shiny formatting
 dt <- datatable(
   display_results,
-  extensions = c('Buttons', 'FixedHeader', 'Scroller'),
+  extensions = c('Buttons'),
+  filter = "none",
   options = list(
-    dom = 'Blfrtip',  # Added 'l' for length menu (rows per page selector)
-    buttons = all_buttons,
-    fixedHeader = TRUE,
+    dom = 'Blfrtip',
+    buttons = list(
+      'copy',
+      list(
+        extend = 'colvis',
+        text = 'Show/Hide Columns'
+      )
+    ),
+    pageLength = 5,
+    lengthMenu = list(
+      c(5, 10, 25, 50, 100, -1),
+      c('5', '10', '25', '50', '100', 'All')
+    ),
     scrollX = TRUE,
-    scrollY = '600px',
-    scroller = TRUE,
-    pageLength = 5,  # Start with 5 rows displayed
-    lengthMenu = c(5, 10, 25, 50, 100),  # Include 5 as first option
-    searchHighlight = TRUE,
     columnDefs = list(
-      list(className = 'dt-center', targets = "_all"),
-      # Hide gene list columns by default
-      list(visible = FALSE, targets = gene_col_indices)
-    )
+      list(targets = pathway_col_idx, width = "250px"),
+      list(visible = FALSE, targets = hidden_col_indices)
+    ),
+    initComplete = htmlwidgets::JS("
+      function(settings, json) {
+        var api = this.api();
+        api.columns().every(function() {
+          var col = this;
+          var header = $(col.header()).text();
+          if (header !== 'contrast') {
+            $('input', col.header()).remove();
+          }
+        });
+      }
+    ")
   ),
-  filter = 'top',
   rownames = FALSE,
+  width = "100%",
   caption = htmltools::tags$caption(
     style = 'caption-side: top; text-align: center; font-size: 16px; font-weight: bold;',
-    'Filtered GSEA Results - Interactive Table'
+    'Filtered GSEA Results'
   )
-)
-
-# Add custom CSS for active button styling
-dt <- dt %>%
+) %>%
+  formatStyle(
+    columns = "pathway",
+    `white-space` = "pre-wrap",
+    `word-break` = "break-word",
+    `line-height` = "1.2"
+  ) %>%
   htmlwidgets::prependContent(
     htmltools::tags$style(
       htmltools::HTML("
-        .dt-button.active {
-          background-color: #4CAF50 !important;
+        /* Teal color for all DT buttons */
+        .dt-button {
+          background-color: #17a2b8 !important;
           color: white !important;
-          border: 2px solid #2e7d32 !important;
+          border: 1px solid #138496 !important;
         }
-        .dt-buttons {
-          margin-bottom: 10px;
+        .dt-button:hover {
+          background-color: #138496 !important;
         }
       ")
     )
@@ -740,9 +764,5 @@ htmlwidgets::saveWidget(
 )
 
 cat(sprintf("Interactive HTML table saved to: %s\n", output_file_html))
-if (length(existing_gene_cols) > 0) {
-  cat(sprintf("Gene list columns (%s) are hidden by default.\n", paste(existing_gene_cols, collapse = ", ")))
-  cat("Use the toggle buttons above the table to show/hide each column.\n")
-}
 
 cat("\n=== GSEA Filter Complete ===\n")
