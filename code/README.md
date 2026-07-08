@@ -48,24 +48,33 @@ These columns are optional:
 | `leadingEdge_orthologs` | character | Human orthologs of leading edge genes |
 | `inPathway_orthologs` | character | Human orthologs of pathway genes |
 
-### Output Columns
-
-The filtered output includes all input columns plus one additional derived column:
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `main_collection` | character | Top-level collection prefix extracted from `collection` (e.g., "C2" from "C2:CP:REACTOME") |
-
-**Column order in outputs**: `contrast`, `geneScore`, `fdr_correction_mode`, `pathways_database`, `main_collection`, `collection`, `pathway`, `pval`, `padj`, `ES`, `NES`, `nMoreExtreme`, `size`, `leadingEdge`, `size_leadingEdge`, `fraction_leadingEdge`, `inPathway`, `species`, `leadingEdge_orthologs`, `inPathway_orthologs`
-
 ### Example Input Row
 
-```
-contrast,geneScore,fdr_correction_mode,pathways_database,collection,pathway,pval,padj,ES,NES,nMoreExtreme,size,leadingEdge,size_leadingEdge,fraction_leadingEdge,inPathway,species,leadingEdge_orthologs,inPathway_orthologs
-"B-A","_tstat","within each collection","MSigDB_2023.2.Hs","C2:CP:REACTOME: Reactome gene sets","REACTOME_CELL_CYCLE_MITOTIC",0.000365898,0.0106373,-0.387934,-1.871296,0,560,"Myc,Mcm6,Gorasp1,...",145,0.258929,"Aaas,Abl1,Actr1a,...","Mouse","MYC,MCM6,GORASP1,...","AAAS,ABL1,ACTR1A,..."
-```
+| Column | Example Value |
+|--------|---------------|
+| contrast | B-A |
+| geneScore | _tstat |
+| fdr_correction_mode | within each collection |
+| pathways_database | MSigDB_2023.2.Hs |
+| collection | C2:CP:REACTOME: Reactome gene sets |
+| pathway | REACTOME_CELL_CYCLE_MITOTIC |
+| pval | 0.000365898 |
+| padj | 0.0106373 |
+| ES | -0.387934 |
+| NES | -1.871296 |
+| nMoreExtreme | 0 |
+| size | 560 |
+| leadingEdge | Myc,Mcm6,Gorasp1,... |
+| size_leadingEdge | 145 |
+| fraction_leadingEdge | 0.258929 |
+| inPathway | Aaas,Abl1,Actr1a,... |
+| species | Mouse |
+| leadingEdge_orthologs | MYC,MCM6,GORASP1,... |
+| inPathway_orthologs | AAAS,ABL1,ACTR1A,... |
 
 ## Output
+
+### Output Files
 
 - **Filtered GSEA Results**: Available in three formats
   - `filtered_gsea_results.csv` - Human-readable CSV format
@@ -94,6 +103,16 @@ contrast,geneScore,fdr_correction_mode,pathways_database,collection,pathway,pval
     - Shows stacked bars by MSigDB collection when ≤12 collections present
     - Color-coded by collection or direction
     - Caption dynamically shows NES or ES based on selected enrichment score type
+
+### Output Columns
+
+The filtered output includes all input columns plus one additional derived column:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `main_collection` | character | Top-level collection prefix extracted from `collection` (e.g., "C2" from "C2:CP:REACTOME") |
+
+**Column order in output files**: `contrast`, `geneScore`, `fdr_correction_mode`, `pathways_database`, `main_collection`, `collection`, `pathway`, `pval`, `padj`, `ES`, `NES`, `nMoreExtreme`, `size`, `leadingEdge`, `size_leadingEdge`, `fraction_leadingEdge`, `inPathway`, `species`, `leadingEdge_orthologs`, `inPathway_orthologs`
 
 ### How to Use the Interactive Table
 

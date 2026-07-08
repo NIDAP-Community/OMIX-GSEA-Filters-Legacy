@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## [4.0.0] - 2026-01-08
+## [4.0.0] - 2026-07-08
 
 ### Added
 - **Interactive column filters** in HTML table for powerful data exploration
@@ -24,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - **Required columns table**: 16 columns with type and description (all core columns; orthologs and nMoreExtreme are optional)
   - **Optional columns table**: 3 columns (nMoreExtreme, ortholog columns)
   - **Output columns**: Documents derived `main_collection` column and column order
-  - **Example input row**: Real CSV example from demo data
+  - **Example input row**: Formatted as readable two-column table (Column | Example Value) for better clarity
 - Enhanced App Panel help text with detailed parameter guidance:
   - Concrete examples for all text inputs (contrast names with hyphens, collection codes, pathway names, gene symbols)
   - Typical threshold values (0.05 for p-value, 1.5 for NES, 15 for size)
@@ -45,6 +45,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Added detailed column filter usage instructions with examples
   - Documented gene search functionality
   - Added `pathways_database` to hidden-by-default columns list
+  - Restructured Input and Output sections for clarity:
+    - Moved "Output Columns" from Input section to Output section
+    - Clear separation between input data requirements and output structure
 - Updated contrast example in App Panel to use OMIX standard format with hyphens (`Treatment_1-Control` instead of `Treatment_vs_Control`)
 - **Removed legacy GSEA v67 support code**:
   - Removed `adjust.v67()` function for outdated CCBR GSEA format compatibility
