@@ -192,10 +192,10 @@
 	],
 	"results": [
 		{
-			"file_name": "filtered_gsea_results_table.html"
+			"file_name": "filtering_summary.png"
 		},
 		{
-			"file_name": "filtering_summary.png"
+			"file_name": "filtered_gsea_results_table.html"
 		}
 	]
 }
