@@ -1,4 +1,4 @@
-# Omix GSEA Filter
+# Omix GSEA Filter Legacy
 
 Filter GSEA table formatted output from Omix GSEA based on multiple criteria including p-values, enrichment scores, pathway size, and more.
 

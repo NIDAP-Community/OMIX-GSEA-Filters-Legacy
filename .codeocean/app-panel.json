@@ -1,7 +1,7 @@
 {
 	"version": 1,
 	"general": {
-		"title": "GSEA Filter",
+		"title": "GSEA Filter Legacy",
 		"instructions": "Filter GSEA enrichment results from OMIX GSEA by p-value, enrichment score, pathway size, and more.\n\n**Input options:**\n- Upload a CSV file directly, OR\n- Use the attached demo data asset, OR\n- Replace the data asset with your own\n\n**Interactive HTML table output** includes clickable MSigDB pathway links and column filters for exploration."
 	},
 	"datasets": [
