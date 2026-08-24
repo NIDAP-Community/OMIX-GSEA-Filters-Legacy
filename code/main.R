@@ -16,7 +16,7 @@ suppressPackageStartupMessages({
 })
 
 # Source the GSEA filter function
-source("/code/filter_gsea_function.R")
+source("/code/functions/filter_gsea_function.R")
 
 # Define command line options
 option_list <- list(
