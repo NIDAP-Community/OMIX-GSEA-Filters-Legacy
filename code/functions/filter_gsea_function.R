@@ -649,10 +649,10 @@ GSEA_Filters <- function(
     ## sort output
     # Modern dplyr: use arrange with pick() and conditional desc()
     if (sort_output_in_decreasing_order) {
-        gsea_filtered <- gsea_filtered %>% 
+        gsea_filtered <- gsea_filtered %>%
             dplyr::arrange(dplyr::desc(dplyr::pick(dplyr::all_of(columns_to_sort_output_by))))
     } else {
-        gsea_filtered <- gsea_filtered %>% 
+        gsea_filtered <- gsea_filtered %>%
             dplyr::arrange(dplyr::pick(dplyr::all_of(columns_to_sort_output_by)))
     }
 
