@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Core R dependencies come from OMIX Pathways.
+# Capsule-specific HTML-table packages are declared in the Environment Editor.
+true

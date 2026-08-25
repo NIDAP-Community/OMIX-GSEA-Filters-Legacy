@@ -1,12 +1,23 @@
 {
 	"version": 1,
-	"base_image": "codeocean/mosuite:v0.3.2",
+	"base_image": "codeocean/omix-r-pathway:r4.4.3-bioconductor3.20-v1",
+	"post_install": true,
 	"options": {
 		"registry_host_arg": true,
 		"git_ask_pass": true,
 		"mount_secrets": true
 	},
 	"installers": {
+		"apt": {
+			"packages": [
+				{
+					"name": "pandoc",
+					"version": "3.1.3+ds-2"
+				}
+			],
+			"install_software_properties_common": true,
+			"install_gnupg": true
+		},
 		"rcran": {
 			"packages": [
 				{
@@ -14,20 +25,8 @@
 					"version": "0.34.0"
 				},
 				{
-					"name": "RColorBrewer",
-					"version": "1.1-3"
-				},
-				{
 					"name": "htmlwidgets",
 					"version": "1.6.4"
-				},
-				{
-					"name": "optparse",
-					"version": "1.8.2"
-				},
-				{
-					"name": "patchwork",
-					"version": "1.3.2"
 				},
 				{
 					"name": "plotly",
