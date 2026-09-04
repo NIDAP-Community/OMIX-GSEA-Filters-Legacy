@@ -1,13 +1,29 @@
-# Canonical OMIX Module
+# Canonical OMIX Module Source
 
-The reusable scientific implementation for this Code Ocean adapter is owned by
-the [OMIX-GSEA-Filters-Legacy module](https://github.com/NIDAP-Community/OMIX/tree/main/modules/OMIX-GSEA-Filters-Legacy).
+## Canonical module
 
-This adapter owns Code Ocean App Panel metadata, capsule environment setup,
-input discovery under `/data`, result paths under `/results`, and the runtime
-entry point in `code/main.R`.
+- **Module:** [OMIX GSEA Filters Legacy](https://github.com/NIDAP-Community/OMIX/tree/main/modules/OMIX-GSEA-Filters-Legacy)
+- **Canonical path:** `modules/OMIX-GSEA-Filters-Legacy/`
+- **Released source reference:** [`2987296a45a2a11e6c4b3454c813a63ae6db6ac0`](https://github.com/NIDAP-Community/OMIX/commit/2987296a45a2a11e6c4b3454c813a63ae6db6ac0)
+- **Interface schema:** [schemas/interface.yml](https://github.com/NIDAP-Community/OMIX/blob/main/modules/OMIX-GSEA-Filters-Legacy/schemas/interface.yml)
+- **Module contract:** [OMIX module contract](https://github.com/NIDAP-Community/OMIX/blob/main/docs/module-contract.md)
 
-When a change affects scientific behavior or the reusable command-line
-interface, update the canonical module first (or backport a tested capsule fix)
-and then export the released function to `code/functions/`. See the
-[OMIX module contract](https://github.com/NIDAP-Community/OMIX/blob/main/docs/module-contract.md).
+## Exported scientific files
+
+| Canonical file | Adapter copy | Purpose |
+| --- | --- | --- |
+| `R/filter_gsea_function.R` | `code/functions/filter_gsea_function.R` | Legacy GSEA result-filtering implementation. |
+
+The listed export was verified byte-for-byte against the released source
+reference above.
+
+## Ownership and synchronization
+
+The canonical module owns scientific functions, portable CLI behavior, schemas,
+tests, and scientific documentation. This adapter owns deployment UI, input
+discovery, result paths, runtime setup, and the platform entry point.
+
+Make reusable changes in the canonical module, update its tests and interface,
+record the next released source reference here, and then re-export the listed
+file without unreviewed behavioral changes. Validate the adapter with
+representative deployment inputs before release.

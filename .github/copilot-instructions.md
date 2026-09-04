@@ -1,6 +1,7 @@
 # OMIX GSEA Filters Legacy Adapter Instructions
 
-Read [OMIX_MODULE_SOURCE.md](../OMIX_MODULE_SOURCE.md) before changing this
+Read [AGENTS.md](../AGENTS.md) and
+[OMIX_MODULE_SOURCE.md](../OMIX_MODULE_SOURCE.md) before changing this
 repository.
 
 - Keep Code Ocean-specific files in `.codeocean/`, `metadata/`, `environment/`,
