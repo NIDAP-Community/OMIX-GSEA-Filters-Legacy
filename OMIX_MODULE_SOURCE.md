@@ -7,7 +7,7 @@
 - **Canonical module version:** `1.0.0`
 - **Canonical interface version:** `1`
 - **Canonical release tag:** Pending — baseline tag not yet established.
-- **Canonical source reference:** [`2987296a45a2a11e6c4b3454c813a63ae6db6ac0`](https://github.com/NIDAP-Community/OMIX/commit/2987296a45a2a11e6c4b3454c813a63ae6db6ac0)
+- **Canonical source reference:** [`b65eeb3c231eb9dfbdbc09326ab03c23bbe84c8f`](https://github.com/NIDAP-Community/OMIX/commit/b65eeb3c231eb9dfbdbc09326ab03c23bbe84c8f)
 - **Interface schema:** [schemas/interface.yml](https://github.com/NIDAP-Community/OMIX/blob/main/modules/OMIX-GSEA-Filters-Legacy/schemas/interface.yml)
 - **Module contract:** [OMIX module contract](https://github.com/NIDAP-Community/OMIX/blob/main/docs/module-contract.md)
 
