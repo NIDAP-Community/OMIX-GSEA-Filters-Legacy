@@ -6,11 +6,11 @@ Filter GSEA table formatted output from Omix GSEA Preranked Legacy based on mult
 
 ### GSEA Results Table
 
-CSV or RDS file from OMIX GSEA output.
+CSV, TSV, TXT, or RDS file from OMIX GSEA output.
 
 **File options:**
-- **Option 1**: Upload a CSV file directly via the App Panel ("Upload GSEA Results File" parameter)
-- **Option 2**: Attach a data asset containing `gsea_results.csv` or `gsea_results.rds`
+- **Option 1**: Upload a supported file directly via the App Panel ("GSEA Results File" parameter)
+- **Option 2**: Attach a data asset containing exactly one `gsea_results.csv`, `gsea_results.tsv`, `gsea_results.txt`, or `gsea_results.rds`
 - RDS files must contain a data frame with the same structure as the CSV
 
 **Priority**: If you upload a file via the App Panel, it takes priority over any attached data assets.
@@ -148,15 +148,10 @@ The filtered output includes all input columns plus one additional derived colum
 
 ### Using App Panel (Recommended)
 
-The capsule includes a comprehensive App Panel with three parameter categories:
+The capsule includes a comprehensive App Panel with four parameter categories:
 
 #### 1. **Input Data**
-   - **Upload GSEA Results File**: Upload your GSEA results CSV file directly, OR use an attached data asset
-   - **Contrast Filter Mode**: Select how to filter by contrasts
-     - `none` = include all contrasts
-     - `keep` = include only specified contrasts
-     - `remove` = exclude specified contrasts
-   - **Contrasts**: Comma-separated contrast names (used with keep/remove mode)
+   - **GSEA Results File**: Upload a supported GSEA results table directly, OR leave blank to use exactly one matching file in an attached data asset
 
 #### 2. **Statistical Filters**
    - **P-value Type**: `adjusted p-value` (FDR) or `raw p-value`
@@ -164,15 +159,22 @@ The capsule includes a comprehensive App Panel with three parameter categories:
    - **Enrichment Score Type**: `NES` (normalized) or `ES` (raw)
    - **Enrichment Score Threshold**: Minimum absolute score (set to 0 to disable filtering)
    - **Enrichment Direction**: `+/-` (both), `+` (positive only), or `-` (negative only)
-   - **Size Filter Type**: `Pathway size` or `Leading Edge (LE) size`
-   - **Minimum Size**: Minimum pathway/LE size (set to 0 to disable filtering)
    - **Top Rank Filter**: Keep top N pathways per collection and contrast (e.g., `10`), or `all`
 
-#### 3. **Annotation Filters**
+#### 3. **Advanced Annotation Filters**
+   - **Size Filter Type**: `Pathway size` or `Leading Edge (LE) size`
+   - **Minimum Size**: Minimum pathway/LE size (set to 0 to disable filtering)
    - **Collections to Include**: Comma-separated MSigDB collections (e.g., `H,C2`), or leave empty for all
    - **Pathways to Include**: Comma-separated pathway names to include, or leave empty for all
    - **Gene Filter Universe**: Filter by genes in `Leading Edge (LE)` or entire `Pathway`
    - **Genes to Include**: Comma-separated gene symbols (e.g., `TP53,BRCA1`), or leave empty for all
+
+#### 4. **Contrast Filters**
+   - **Contrast Filter Mode**: Select how to filter by contrasts
+     - `none` = include all contrasts
+     - `keep` = include only specified contrasts
+     - `remove` = exclude specified contrasts
+   - **Contrasts**: Comma-separated contrast names (used with keep/remove mode)
 
 ### Command Line Usage
 
@@ -184,7 +186,7 @@ You can also run from command line with flags:
 
 **With uploaded file:**
 ```bash
-./run --input_file /data/my_gsea_results.csv --p_value_threshold 0.01
+./run --input /data/my_gsea_results.csv --p_value_threshold 0.01
 ```
 
 **Common Examples:**

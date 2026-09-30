@@ -29,18 +29,33 @@ See [OMIX_MODULE_SOURCE.md](OMIX_MODULE_SOURCE.md) and the
 [OMIX module contract](https://github.com/NIDAP-Community/OMIX/blob/main/docs/module-contract.md)
 before making changes.
 
-## Inputs and outputs
+## Inputs
 
-The capsule accepts an uploaded GSEA results file or a data asset containing
-`gsea_results.csv` or `gsea_results.rds`. It writes filtered CSV and RDS result
-tables, an interactive HTML table, and a filtering summary image to Code Ocean
-results. Detailed capsule usage is in [code/README.md](code/README.md).
+The capsule accepts an uploaded CSV, TSV, TXT, or RDS GSEA results table. If
+the upload is blank, attach a data asset containing exactly one file named
+`gsea_results.csv`, `gsea_results.tsv`, `gsea_results.txt`, or
+`gsea_results.rds`. Multiple matching files are rejected with their paths so
+the user can select the intended file explicitly.
+
+All 15 public and advanced canonical controls are available as named App Panel
+parameters. Defaults and choices match the canonical schema. Detailed capsule
+usage and column requirements are in [code/README.md](code/README.md).
+
+## Outputs and workflow handoff
+
+The capsule writes `filtered_gsea_results.csv` and
+`filtered_gsea_results.rds` for downstream workflow use. It also writes
+`filtered_gsea_results_table.html` and `filtering_summary.png` as
+deployment-specific review aids.
 
 ## Environment and reproducibility
 
-Use the pinned capsule environment recorded with the release. Retain the input
-GSEA-result identity and selected filters with a released result. The canonical
-source relationship is recorded in [OMIX_MODULE_SOURCE.md](OMIX_MODULE_SOURCE.md).
+The current adapter configuration names
+`codeocean/omix-r-pathway:r4.4.3-bioconductor3.20-v1`. Its immutable digest and
+a named-parameter Code Ocean validation run remain pending; a local or GitHub
+test is not presented as platform validation. Retain the input identity and
+selected filters with a released result. Canonical and runtime provenance are
+recorded in [OMIX_MODULE_SOURCE.md](OMIX_MODULE_SOURCE.md).
 
 ## For developers
 

@@ -15,13 +15,18 @@ suppressPackageStartupMessages({
   library(patchwork)
 })
 
-# Source the GSEA filter function
-source("/code/functions/filter_gsea_function.R")
+# Code Ocean mounts the adapter at /code. Environment overrides keep the same
+# adapter testable without changing its deployment paths or scientific code.
+adapter_code_root <- Sys.getenv("OMIX_ADAPTER_CODE_ROOT", unset = "/code")
+results_dir <- Sys.getenv("OMIX_ADAPTER_RESULTS_DIR", unset = "../results")
+source(file.path(adapter_code_root, "functions", "filter_gsea_function.R"))
+source(file.path(adapter_code_root, "adapter_io.R"))
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
 
 # Define command line options
 option_list <- list(
-  make_option("--input_file", type = "character", default = NULL,
-              help = "Path to uploaded GSEA results CSV file (takes priority over data assets)"),
+  make_option("--input", type = "character", default = NULL,
+              help = "Path to uploaded GSEA results table (takes priority over data assets)"),
   make_option("--p_value_filter", type = "character", default = "adjusted p-value",
               help = "P-value type for filtering [default: %default]"),
   make_option("--p_value_threshold", type = "double", default = 0.05,
@@ -67,90 +72,18 @@ pathways_vec <- parse_comma_list(opt$pathways_to_include)
 genes_vec <- parse_comma_list(opt$genes_to_include)
 contrasts_vec <- parse_comma_list(opt$contrasts)
 
-# Set file paths
-# Priority: uploaded file > attached data asset
-input_file <- NULL
-file_format <- NULL
-input_source <- NULL
+# Resolve the Code Ocean input. An explicit upload wins; otherwise exactly one
+# canonical GSEA result filename must be present beneath the platform data mount.
+resolved_input <- resolve_gsea_input(opt$input, data_root = "/data")
+input_file <- resolved_input$path
+input_source <- resolved_input$source
 
-# 1. Check if user uploaded a file via App Panel
-if (!is.null(opt$input_file) && opt$input_file != "" && opt$input_file != "NULL") {
-  input_file <- opt$input_file
-  input_source <- "uploaded file"
-  
-  # Detect format from file extension
-  if (grepl("\\.rds$", input_file, ignore.case = TRUE)) {
-    file_format <- "rds"
-  } else if (grepl("\\.(csv|tsv|txt)$", input_file, ignore.case = TRUE)) {
-    file_format <- "csv"
-  } else {
-    # Default to CSV for unknown extensions
-    file_format <- "csv"
-    cat("Warning: Unknown file extension, assuming CSV format\n")
-  }
-  
-  cat("Using uploaded file:", input_file, "\n")
-}
-
-# 2. Otherwise, auto-detect GSEA results from attached data asset
-if (is.null(input_file)) {
-  # Data assets are mounted under /data/<mount_point>
-  # Search for gsea_results.csv or gsea_results.rds in /data subdirectories
-  data_dirs <- list.dirs("/data", recursive = FALSE, full.names = TRUE)
-  
-  for (dir in data_dirs) {
-    # Check for CSV first
-    candidate_csv <- file.path(dir, "gsea_results.csv")
-    if (file.exists(candidate_csv)) {
-      input_file <- candidate_csv
-      file_format <- "csv"
-      input_source <- "attached data asset"
-      break
-    }
-    
-    # Check for RDS
-    candidate_rds <- file.path(dir, "gsea_results.rds")
-    if (file.exists(candidate_rds)) {
-      input_file <- candidate_rds
-      file_format <- "rds"
-      input_source <- "attached data asset"
-      break
-    }
-  }
-  
-  if (!is.null(input_file)) {
-    cat("Using file from attached data asset:", input_file, "\n")
-  }
-}
-
-# 3. Error if no input found
-if (is.null(input_file)) {
-  stop("Error: No GSEA results file found. Please either:\n",
-       "  1. Upload a CSV file via the 'Upload GSEA Results File' parameter, OR\n",
-       "  2. Attach a data asset containing 'gsea_results.csv' or 'gsea_results.rds'")
-}
-
-output_file <- "../results/filtered_gsea_results.csv"
+output_file <- file.path(results_dir, "filtered_gsea_results.csv")
 
 # Read input GSEA table
 cat("Reading GSEA table from:", input_file, "\n")
 cat("Input source:", input_source, "\n")
-cat("File format:", file_format, "\n")
-
-if (!file.exists(input_file)) {
-  stop("Error: Input file not found: ", input_file)
-}
-
-# Read based on format
-if (file_format == "rds") {
-  gsea_table <- readRDS(input_file)
-  # Verify it's a data frame
-  if (!is.data.frame(gsea_table)) {
-    stop("Error: RDS file does not contain a data frame")
-  }
-} else {
-  gsea_table <- read.csv(input_file, stringsAsFactors = FALSE)
-}
+gsea_table <- read_gsea_results(input_file)
 
 # Display input summary
 cat(sprintf("\nInput table: %d rows, %d columns\n", nrow(gsea_table), ncol(gsea_table)))
@@ -609,14 +542,14 @@ if ("pathway" %in% colnames(qc_filtered_results) && "NES" %in% colnames(filtered
   
   # Save combined plot with dynamic width
   ggsave(
-    "../results/filtering_summary.png",
+    file.path(results_dir, "filtering_summary.png"),
     plot = combined_plot,
     width = plot_width,
     height = 8,
     dpi = 150
   )
   
-  cat("Filtering summary saved to: ../results/filtering_summary.png\n")
+  cat("Filtering summary saved to: ", file.path(results_dir, "filtering_summary.png"), "\n", sep = "")
 } else {
   cat("Skipping filtering summary plot (missing required columns)\n")
 }
