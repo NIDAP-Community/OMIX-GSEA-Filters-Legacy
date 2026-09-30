@@ -8,3 +8,6 @@
   missing, extra, or misbound controls.
 - Record the canonical source and schema hashes plus the tagged runtime, while
   leaving the unverified runtime digest and Code Ocean run explicitly pending.
+- Record the canonical public `r-visualization` tag and immutable GHCR digest
+  separately from the adapter's historical `r-pathway` selection; Code Ocean
+  runtime reconciliation, environment identity, and validation remain pending.
