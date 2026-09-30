@@ -1,0 +1,19 @@
+name: Adapter contract
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check App Panel and named-parameter bindings
+        run: python3 tests/check_adapter_contract.py
+      - name: Verify contract failure detection
+        run: python3 -m unittest discover -s tests -p 'test_*.py'

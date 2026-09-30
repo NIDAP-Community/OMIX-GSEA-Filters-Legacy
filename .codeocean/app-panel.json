@@ -1,8 +1,9 @@
 {
 	"version": 1,
+	"named_parameters": true,
 	"general": {
 		"title": "GSEA Filter Legacy",
-		"instructions": "Filter GSEA enrichment results from OMIX GSEA by p-value, enrichment score, pathway size, and more.\n\n**Input options:**\n- Upload a CSV file directly, OR\n- Use the attached demo data asset, OR\n- Replace the data asset with your own\n\n**Interactive HTML table output** includes clickable MSigDB pathway links and column filters for exploration."
+		"instructions": "Filter GSEA enrichment results from OMIX GSEA by p-value, enrichment score, pathway size, and more.\n\n**Input options:**\n- Upload a CSV, TSV, TXT, or RDS file directly, OR\n- Use the attached demo data asset, OR\n- Replace the data asset with your own\n\n**Interactive HTML table output** includes clickable MSigDB pathway links and column filters for exploration."
 	},
 	"datasets": [
 		{
@@ -15,7 +16,7 @@
 		{
 			"id": "input",
 			"name": "Input Data",
-			"description": "Upload your GSEA results and select experimental contrasts"
+			"description": "Upload GSEA results or use the attached data asset"
 		},
 		{
 			"id": "statistical",
@@ -24,46 +25,31 @@
 		},
 		{
 			"id": "annotation",
-			"name": "Annotation Filters",
-			"description": "Filter by pathway collections, specific pathways, or genes"
+			"name": "Advanced Annotation Filters",
+			"description": "Optionally filter by pathway size, collections, pathways, or genes"
+		},
+		{
+			"id": "contrast",
+			"name": "Contrast Filters",
+			"description": "Optionally keep or remove selected experimental contrasts"
 		}
 	],
 	"parameters": [
 		{
 			"id": "1Qr8zHKTy2v4JuUe",
+			"param_name": "input",
 			"category": "input",
-			"name": "Upload GSEA Results File",
-			"description": "Upload a CSV file containing GSEA results (gsea_results.csv format). **Takes priority over attached data assets.**",
+			"name": "GSEA Results File",
+			"description": "Optional direct upload of a CSV, TSV, TXT, or RDS GSEA results table. A direct upload takes priority over attached data assets.",
 			"type": "file",
 			"value_type": "string"
 		},
 		{
-			"id": "WfcK0G89Er2LS2vd",
-			"category": "input",
-			"name": "Contrast Filter Mode",
-			"description": "**none** = include all contrasts\n**keep** = include only specified contrasts\n**remove** = exclude specified contrasts",
-			"type": "list",
-			"value_type": "string",
-			"default_value": "none",
-			"extra_data": [
-				"none",
-				"keep",
-				"remove"
-			]
-		},
-		{
-			"id": "V2etNiRmlDTYtEvC",
-			"category": "input",
-			"name": "Contrasts",
-			"description": "Comma-separated contrast names for keep/remove mode.\nExample: `Treatment_1-Control,DrugA-Control`",
-			"type": "text",
-			"value_type": "string"
-		},
-		{
 			"id": "LpdyGCTa7oWwSvS9",
+			"param_name": "p_value_filter",
 			"category": "statistical",
 			"name": "P-value Type",
-			"description": "**adjusted p-value (RECOMMENDED)** = FDR-corrected, accounts for multiple testing in GSEA Preranked\n**raw p-value** = uncorrected, use only for specialized analyses",
+			"description": "Use adjusted p-value (recommended) for FDR-corrected results, or raw p-value for specialized analyses.",
 			"type": "list",
 			"value_type": "string",
 			"default_value": "adjusted p-value",
@@ -74,9 +60,10 @@
 		},
 		{
 			"id": "joSYOkqk6xja9KLz",
+			"param_name": "p_value_threshold",
 			"category": "statistical",
 			"name": "P-value Threshold",
-			"description": "Maximum p-value to include (e.g., 0.05 for 5% FDR). Pathways with p-value ≤ threshold are kept.",
+			"description": "Maximum selected p-value to include. Pathways with values less than or equal to this threshold are retained.",
 			"type": "text",
 			"value_type": "number",
 			"default_value": "0.05",
@@ -85,9 +72,10 @@
 		},
 		{
 			"id": "TruXM6rQaxsmYmD7",
+			"param_name": "enrichment_score_filter",
 			"category": "statistical",
 			"name": "Enrichment Score Type",
-			"description": "**NES** = normalized (recommended for comparison across datasets)\n**ES** = raw enrichment score\n\nSet threshold = 0 to disable enrichment score filtering.",
+			"description": "Choose normalized enrichment score (NES) or raw enrichment score (ES).",
 			"type": "list",
 			"value_type": "string",
 			"default_value": "NES (Normalized Enrichment Score)",
@@ -98,9 +86,10 @@
 		},
 		{
 			"id": "MSYzbnBwp15Ig43y",
+			"param_name": "enrichment_score_threshold",
 			"category": "statistical",
 			"name": "Enrichment Score Threshold",
-			"description": "Minimum **absolute** enrichment score (|NES| or |ES|).\n\n**0 = no filtering** (include all scores)\n**1.5 = typical threshold** for strong enrichment",
+			"description": "Minimum absolute NES or ES. Use 0 to disable enrichment-score filtering.",
 			"type": "text",
 			"value_type": "number",
 			"default_value": "0",
@@ -108,9 +97,10 @@
 		},
 		{
 			"id": "LmkppXj80LV2lhQ9",
+			"param_name": "enrichment_score_sign",
 			"category": "statistical",
 			"name": "Enrichment Direction",
-			"description": "**+/-** = both positive and negative enrichment\n**+** = positive enrichment only (upregulated)\n**-** = negative enrichment only (downregulated)",
+			"description": "+/- retains both directions, + retains positive enrichment, and - retains negative enrichment.",
 			"type": "list",
 			"value_type": "string",
 			"default_value": "+/-",
@@ -122,9 +112,10 @@
 		},
 		{
 			"id": "UumJgAHQ9e2bEFGe",
-			"category": "statistical",
+			"param_name": "size_filter",
+			"category": "annotation",
 			"name": "Size Filter Type",
-			"description": "**Pathway size** = total genes in pathway\n**Leading Edge size** = core enriched genes\n\nSet minimum = 0 to disable size filtering.",
+			"description": "Apply the minimum size to the full pathway or to its leading edge.",
 			"type": "list",
 			"value_type": "string",
 			"default_value": "Pathway size",
@@ -135,9 +126,10 @@
 		},
 		{
 			"id": "f6unXbFOf7D8RDkC",
-			"category": "statistical",
+			"param_name": "size_cutoff",
+			"category": "annotation",
 			"name": "Minimum Size",
-			"description": "Minimum pathway or leading edge size (number of genes).\n\n**0 = no filtering**\n**15 = typical minimum** to exclude very small gene sets",
+			"description": "Minimum pathway or leading-edge size. Use 0 to disable size filtering.",
 			"type": "text",
 			"value_type": "number",
 			"default_value": "0",
@@ -145,34 +137,38 @@
 		},
 		{
 			"id": "FnWpP0JSQHlvF0Cd",
+			"param_name": "top_rank_filter",
 			"category": "statistical",
 			"name": "Top Rank Filter",
-			"description": "Keep top N pathways per collection and contrast, ranked by p-value.\n\n**all** = keep all pathways (case-insensitive)\n**10** = keep top 10 per collection/contrast\n**25** = keep top 25 per collection/contrast",
+			"description": "Use all or a positive numeric rank applied within each contrast and collection.",
 			"type": "text",
 			"value_type": "string",
 			"default_value": "all"
 		},
 		{
 			"id": "E8fzn84tILLn8Yyq",
+			"param_name": "collections_to_include",
 			"category": "annotation",
 			"name": "Collections to Include",
-			"description": "Comma-separated MSigDB collection names (case-sensitive).\n\nExamples:\n- `H` = Hallmark gene sets\n- `C2` = Curated gene sets\n- `H,C2,C5` = multiple collections\n- Empty = all collections",
+			"description": "Optional comma-separated collection names, matched exactly. Leave blank for all collections.",
 			"type": "text",
 			"value_type": "string"
 		},
 		{
 			"id": "6oRMSfD4cts6isdZ",
+			"param_name": "pathways_to_include",
 			"category": "annotation",
 			"name": "Pathways to Include",
-			"description": "Comma-separated pathway names to include (case-sensitive).\n\nExample: `HALLMARK_APOPTOSIS,HALLMARK_P53_PATHWAY`\n\nEmpty = all pathways",
+			"description": "Optional comma-separated pathway names, matched exactly. Leave blank for all pathways.",
 			"type": "text",
 			"value_type": "string"
 		},
 		{
 			"id": "4gp61b2zzFbDmYKk",
+			"param_name": "gene_filter_universe",
 			"category": "annotation",
 			"name": "Gene Filter Universe",
-			"description": "Where to search for specified genes:\n\n**Leading Edge** = core enriched genes (recommended)\n**Pathway** = all genes in the gene set",
+			"description": "Search for requested genes in the leading edge or in the complete pathway gene set.",
 			"type": "list",
 			"value_type": "string",
 			"default_value": "Leading Edge (LE)",
@@ -183,9 +179,34 @@
 		},
 		{
 			"id": "zY1hq3icOiBJhOmB",
+			"param_name": "genes_to_include",
 			"category": "annotation",
 			"name": "Genes to Include",
-			"description": "Comma-separated gene symbols (case-sensitive).\n\nExample: `TP53,BRCA1,EGFR`\n\nKeeps pathways containing **any** of the specified genes in the selected universe (leading edge or pathway).\n\nEmpty = all genes",
+			"description": "Optional comma-separated gene symbols. A pathway is retained when any requested gene occurs in the selected universe.",
+			"type": "text",
+			"value_type": "string"
+		},
+		{
+			"id": "WfcK0G89Er2LS2vd",
+			"param_name": "contrast_filter",
+			"category": "contrast",
+			"name": "Contrast Filter Mode",
+			"description": "none includes all contrasts, keep includes only named contrasts, and remove excludes named contrasts.",
+			"type": "list",
+			"value_type": "string",
+			"default_value": "none",
+			"extra_data": [
+				"none",
+				"keep",
+				"remove"
+			]
+		},
+		{
+			"id": "V2etNiRmlDTYtEvC",
+			"param_name": "contrasts",
+			"category": "contrast",
+			"name": "Contrasts",
+			"description": "Optional comma-separated contrast names used with keep or remove mode.",
 			"type": "text",
 			"value_type": "string"
 		}
