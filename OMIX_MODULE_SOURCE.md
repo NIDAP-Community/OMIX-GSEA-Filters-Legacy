@@ -44,18 +44,19 @@ and adapter contract has SHA-256
 | Adapter version | Pending — baseline tag not yet established. |
 | Adapter release tag | Pending. |
 | Platform release | Pending validation record. |
-| Runtime tag | `codeocean/omix-r-pathway:r4.4.3-bioconductor3.20-v1` (from `.codeocean/environment.json`). |
+| Runtime tag | `codeocean/omix-r-visualization:r4.4.3-v2` (from `.codeocean/environment.json`). |
 | Runtime digest | Pending — no immutable digest has been validated or recorded. |
 | Named-parameter platform run | Pending — GitHub/local checks are not Code Ocean validation. |
 | Syncweaver lock | Pending — no generated `.syncweaver-lock.json` is recorded. |
 
-The canonical module declares the `r-visualization` runtime profile. This
-adapter currently names the historical Code Ocean `omix-r-pathway` image plus
-its platform overlay packages. Compatibility passed a local representative
-run, but runtime-profile reconciliation and the immutable digest remain
-pending Forge and Code Ocean validation.
+The canonical module declares the `r-visualization` runtime profile. This PR
+configures the adapter for the matching Code Ocean OMIX Visualization v2
+environment, retains its capsule-specific DT and Pandoc overlays, and relies on
+the starter for htmlwidgets and plotly. Applying that configuration to the live
+capsule, resolving the immutable Code Ocean digest, and running representative
+platform validation remain pending.
 
-<!-- omix-runtime-provenance: {"runtime_profile":"r-visualization","published_image":"ghcr.io/nidap-community/omix-r-visualization","published_tag":"r4.4.3-v2","published_digest":"sha256:1d9f453b49412aa05e9d3420cd4b1b4ea0beac4923cb40572af38b0ae2a46830","published_immutable_reference":"ghcr.io/nidap-community/omix-r-visualization@sha256:1d9f453b49412aa05e9d3420cd4b1b4ea0beac4923cb40572af38b0ae2a46830","adapter_base_image":"codeocean/omix-r-pathway:r4.4.3-bioconductor3.20-v1","adapter_base_image_digest":null,"adapter_digest_status":"pending_code_ocean_resolution","runtime_profile_alignment_status":"pending_runtime_reconciliation","code_ocean_environment_id":null,"capsule_run":null} -->
+<!-- omix-runtime-provenance: {"runtime_profile":"r-visualization","published_image":"ghcr.io/nidap-community/omix-r-visualization","published_tag":"r4.4.3-v2","published_digest":"sha256:1d9f453b49412aa05e9d3420cd4b1b4ea0beac4923cb40572af38b0ae2a46830","published_immutable_reference":"ghcr.io/nidap-community/omix-r-visualization@sha256:1d9f453b49412aa05e9d3420cd4b1b4ea0beac4923cb40572af38b0ae2a46830","adapter_base_image":"codeocean/omix-r-visualization:r4.4.3-v2","adapter_base_image_digest":null,"adapter_digest_status":"pending_code_ocean_resolution","runtime_profile_alignment_status":"configured_pending_code_ocean_selection","code_ocean_environment_id":null,"capsule_run":null} -->
 
 ### Runtime provenance detail
 
@@ -63,9 +64,9 @@ pending Forge and Code Ocean validation.
 | --- | --- |
 | Canonical runtime profile | `r-visualization`, as declared by the canonical module. |
 | Published OMIX runtime | Tag `ghcr.io/nidap-community/omix-r-visualization:r4.4.3-v2`; immutable public identity `ghcr.io/nidap-community/omix-r-visualization@sha256:1d9f453b49412aa05e9d3420cd4b1b4ea0beac4923cb40572af38b0ae2a46830`. |
-| Adapter-selected base image | `codeocean/omix-r-pathway:r4.4.3-bioconductor3.20-v1`; this is not the canonical profile, and its Code Ocean digest remains **Pending Code Ocean resolution**. A similarly named public GHCR image is not treated as proof of the imported Code Ocean environment's identity. |
+| Adapter-selected base image | `codeocean/omix-r-visualization:r4.4.3-v2`; it aligns by profile and tag, while the imported Code Ocean image digest remains **Pending Code Ocean resolution**. A similarly named public GHCR image is not treated as proof of the imported Code Ocean environment's identity. |
 | Runtime build evidence | [Starter Environments run 33779788678](https://github.com/NIDAP-Community/OMIX/actions/runs/33779788678) built, verified, inventoried, and published `r-visualization:v2`; [GHCR version 1205968442](https://github.com/orgs/NIDAP-Community/packages/container/omix-r-visualization/1205968442) independently maps the version tag to the recorded digest. Post-publication package-set re-verification remains pending in the canonical release manifest. |
-| Code Ocean environment identity | **Pending** — no immutable environment-release identifier is recorded. |
+| Code Ocean environment identity | **Pending** — capsule `8435078` still showed OMIX Pathways v1 during this review because its held workstation prevented changing environments safely. |
 | Capsule run | A representative named-parameter Code Ocean run using the reconciled profile is **Pending**; GitHub or local checks are not platform validation. |
 
 The published public image identity is also recorded in the canonical

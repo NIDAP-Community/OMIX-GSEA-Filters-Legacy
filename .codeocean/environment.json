@@ -1,6 +1,6 @@
 {
 	"version": 1,
-	"base_image": "codeocean/omix-r-pathway:r4.4.3-bioconductor3.20-v1",
+	"base_image": "codeocean/omix-r-visualization:r4.4.3-v2",
 	"post_install": true,
 	"options": {
 		"registry_host_arg": true,
@@ -23,14 +23,6 @@
 				{
 					"name": "DT",
 					"version": "0.34.0"
-				},
-				{
-					"name": "htmlwidgets",
-					"version": "1.6.4"
-				},
-				{
-					"name": "plotly",
-					"version": "4.12.0"
 				}
 			],
 			"use_rcache": true
