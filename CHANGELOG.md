@@ -23,3 +23,8 @@
   The run retained 375 rows and reproduced all four expected outputs after the
   platform-generated `.codeocean/environment.json` newline normalization was
   committed, with unchanged parsed JSON content and runtime selection.
+- Validate merged adapter commit
+  `96ea6f3e09a813808d7356768c2acf8b1bf780f7` in linked-capsule run `883755`,
+  then publish that exact tree as Code Ocean Standard Capsule Release Version
+  2.0. The adapter Git tag and imported Code Ocean runtime digest remain
+  pending.
