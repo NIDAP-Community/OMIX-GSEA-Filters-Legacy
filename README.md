@@ -50,12 +50,13 @@ deployment-specific review aids.
 
 ## Environment and reproducibility
 
-This PR configures the adapter for the Code Ocean OMIX Visualization v2
-starter, `codeocean/omix-r-visualization:r4.4.3-v2`, with capsule-specific DT
-and Pandoc overlays. Applying that configuration to the live capsule, resolving
-its imported immutable digest, and recording a named-parameter Code Ocean run
-remain pending; a local or GitHub test is not presented as platform validation.
-Retain the input identity and selected filters with a released result.
+The live linked capsule now uses the Code Ocean OMIX Visualization v2 starter,
+`codeocean/omix-r-visualization:r4.4.3-v2`, with only the capsule-specific DT
+and Pandoc overlays. Code Ocean run `859970` in capsule `8822105` validated the
+named-parameter workflow against the attached demo asset on October 1, 2026.
+The imported environment's immutable Code Ocean digest is still unresolved;
+the public GHCR digest is not substituted for that platform identity. Retain
+the input identity and selected filters with a released result.
 Canonical and runtime provenance are recorded in
 [OMIX_MODULE_SOURCE.md](OMIX_MODULE_SOURCE.md).
 
