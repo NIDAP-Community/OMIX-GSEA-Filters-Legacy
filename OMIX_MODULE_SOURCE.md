@@ -43,19 +43,20 @@ and adapter contract has SHA-256
 | --- | --- |
 | Adapter version | Pending — baseline tag not yet established. |
 | Adapter release tag | Pending. |
-| Platform release | Pending — successful validation is not a released capsule version. |
+| Platform release | [Code Ocean Standard Capsule Release Version 2.0](https://poc-nci.codeocean.io/capsule/082788d5-68ed-43c7-a327-68fb6fb91c75/tree/v2), published October 1, 2026. |
 | Runtime tag | `codeocean/omix-r-visualization:r4.4.3-v2` (from `.codeocean/environment.json`). |
 | Runtime digest | Pending — no immutable digest has been validated or recorded. |
-| Named-parameter platform run | Capsule `8822105`, run `880093`, October 1, 2026, adapter commit `e436f0d63ab27fff01d95c767de6f204c047f2fb`. |
+| Named-parameter platform run | Capsule `8822105`, run `883755`, October 1, 2026, adapter commit `96ea6f3e09a813808d7356768c2acf8b1bf780f7`. |
 | Syncweaver lock | Pending — no generated `.syncweaver-lock.json` is recorded. |
 
 The canonical module declares the `r-visualization` runtime profile. The linked
 capsule now selects the matching Code Ocean OMIX Visualization v2 environment,
 retains its capsule-specific DT and Pandoc overlays, and relies on the starter
 for htmlwidgets and plotly. Representative platform validation succeeded; the
-imported Code Ocean environment digest and platform release remain pending.
+imported Code Ocean environment digest remains pending; the platform release is
+recorded above.
 
-<!-- omix-runtime-provenance: {"runtime_profile":"r-visualization","published_image":"ghcr.io/nidap-community/omix-r-visualization","published_tag":"r4.4.3-v2","published_digest":"sha256:1d9f453b49412aa05e9d3420cd4b1b4ea0beac4923cb40572af38b0ae2a46830","published_immutable_reference":"ghcr.io/nidap-community/omix-r-visualization@sha256:1d9f453b49412aa05e9d3420cd4b1b4ea0beac4923cb40572af38b0ae2a46830","adapter_base_image":"codeocean/omix-r-visualization:r4.4.3-v2","adapter_base_image_digest":null,"adapter_digest_status":"pending_code_ocean_resolution","runtime_profile_alignment_status":"validated_code_ocean_run_digest_pending","code_ocean_environment_id":null,"capsule_run":{"capsule_id":"8822105","run_id":"880093","date":"2026-10-01","adapter_commit":"e436f0d63ab27fff01d95c767de6f204c047f2fb","dataset_id":"f165ec6c-115f-446a-8429-55073714c2ef"}} -->
+<!-- omix-runtime-provenance: {"runtime_profile":"r-visualization","published_image":"ghcr.io/nidap-community/omix-r-visualization","published_tag":"r4.4.3-v2","published_digest":"sha256:1d9f453b49412aa05e9d3420cd4b1b4ea0beac4923cb40572af38b0ae2a46830","published_immutable_reference":"ghcr.io/nidap-community/omix-r-visualization@sha256:1d9f453b49412aa05e9d3420cd4b1b4ea0beac4923cb40572af38b0ae2a46830","adapter_base_image":"codeocean/omix-r-visualization:r4.4.3-v2","adapter_base_image_digest":null,"adapter_digest_status":"pending_code_ocean_resolution","runtime_profile_alignment_status":"validated_code_ocean_run_digest_pending","code_ocean_environment_id":null,"capsule_run":{"capsule_id":"8822105","run_id":"883755","date":"2026-10-01","adapter_commit":"96ea6f3e09a813808d7356768c2acf8b1bf780f7","dataset_id":"f165ec6c-115f-446a-8429-55073714c2ef"},"platform_release":{"type":"standard_capsule","version":"2.0","release_capsule_id":"082788d5-68ed-43c7-a327-68fb6fb91c75","date":"2026-10-01"}} -->
 
 ### Runtime provenance detail
 
@@ -66,12 +67,12 @@ imported Code Ocean environment digest and platform release remain pending.
 | Adapter-selected base image | `codeocean/omix-r-visualization:r4.4.3-v2`; it aligns by profile and tag, while the imported Code Ocean image digest remains **Pending Code Ocean resolution**. A similarly named public GHCR image is not treated as proof of the imported Code Ocean environment's identity. |
 | Runtime build evidence | [Starter Environments run 33779788678](https://github.com/NIDAP-Community/OMIX/actions/runs/33779788678) built, verified, inventoried, and published `r-visualization:v2`; [GHCR version 1205968442](https://github.com/orgs/NIDAP-Community/packages/container/omix-r-visualization/1205968442) independently maps the version tag to the recorded digest. Post-publication package-set re-verification remains pending in the canonical release manifest. |
 | Code Ocean environment identity | Linked capsule `8822105` selected **OMIX Visualization 2 (2)** and built from `registry.poc-nci.codeocean.io/codeocean/omix-r-visualization:r4.4.3-v2`. The imported immutable digest or stable environment-release ID was not exposed in the run record and remains pending. |
-| Capsule run | Run `880093` completed successfully on October 1, 2026 from the exact tree committed as `e436f0d63ab27fff01d95c767de6f204c047f2fb`. |
+| Capsule run | Run `883755` completed successfully on October 1, 2026 from the exact merged tree committed as `96ea6f3e09a813808d7356768c2acf8b1bf780f7`; that tree was published as Standard Capsule Release Version 2.0. |
 
 ### Code Ocean validation evidence
 
 - **Capsule:** `8822105` (linked to this GitHub repository)
-- **Run:** `880093`, completed October 1, 2026 in 7 seconds
+- **Run:** `883755`, completed October 1, 2026 in 8 seconds
 - **Input:** attached `gsea_data` asset
   `f165ec6c-115f-446a-8429-55073714c2ef`; recursively discovered
   `/data/gsea_data/gsea_results.csv` with 2,544 rows and 19 columns
@@ -89,8 +90,8 @@ This establishes representative platform behavior for the recorded commit and
 tag-selected environment. Code Ocean's newline normalization for
 `.codeocean/environment.json` was committed as part of the exact tested tree;
 the parsed environment configuration and runtime selection were unchanged. It
-does not establish the imported environment's immutable digest, a capsule
-release, an adapter tag, or release approval.
+does not establish the imported environment's immutable digest or an adapter
+Git tag. It does establish the linked Standard Capsule Release Version 2.0.
 
 The published public image identity is also recorded in the canonical
 [`release-manifest.json`](https://github.com/NIDAP-Community/OMIX/blob/eee4433cd74d0ce9bd1daba1571ca6312cba7ea2/starter-environments/release-manifest.json).
