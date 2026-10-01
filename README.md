@@ -52,11 +52,12 @@ deployment-specific review aids.
 
 The live linked capsule now uses the Code Ocean OMIX Visualization v2 starter,
 `codeocean/omix-r-visualization:r4.4.3-v2`, with only the capsule-specific DT
-and Pandoc overlays. Code Ocean run `874117` in capsule `8822105` revalidated
+and Pandoc overlays. Code Ocean run `880093` in capsule `8822105` revalidated
 the current named-parameter workflow against the attached demo asset on
-October 1, 2026. The capsule worktree contained only a newline-at-EOF formatting
-difference in `.codeocean/environment.json`; its parsed environment content and
-runtime selection were unchanged.
+October 1, 2026. The platform-generated newline normalization in
+`.codeocean/environment.json` was committed and synchronized before the
+release decision; it did not change parsed environment content or runtime
+selection.
 The imported environment's immutable Code Ocean digest is still unresolved;
 the public GHCR digest is not substituted for that platform identity. Retain
 the input identity and selected filters with a released result.
