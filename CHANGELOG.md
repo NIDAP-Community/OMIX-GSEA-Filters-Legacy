@@ -18,3 +18,8 @@
   commit `3391b904123421a6fa9719996951af8d766716e5`, including its attached
   input, named parameters, row assertions, and four inspected outputs. The
   imported Code Ocean digest and release identifiers remain pending.
+- Revalidate the current tracked adapter tree at commit
+  `40e31185a6f2c66818b1ef22e4f0982b74aa33d7` in linked-capsule run `874117`.
+  The run retained 375 rows and reproduced all four expected outputs; the only
+  worktree difference was a newline-at-EOF formatting change in
+  `.codeocean/environment.json`, with unchanged parsed JSON content.
